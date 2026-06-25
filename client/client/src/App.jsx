@@ -1,5 +1,3 @@
-import FirstPage from "./pages/FirstPage";
-import SecondPage from "./pages/SecondPage";
 import "./App.css";
 
 function App() {
@@ -8,8 +6,15 @@ function App() {
       <h1>Моё React-приложение</h1>
 
       <div className="pages">
-        <FirstPage />
-        <SecondPage />
+        <div className="page">
+          <h2>Первый лист</h2>
+          <p>Это первая страница-заглушка.</p>
+        </div>
+
+        <div className="page">
+          <h2>Второй лист</h2>
+          <p>Это вторая страница-заглушка.</p>
+        </div>
       </div>
     </div>
   );
