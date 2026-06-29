@@ -82,6 +82,24 @@ button {
   font-size: 22px;
 }
 
+.header-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 26px !important;
+  cursor: pointer;
+  text-shadow: 0 0 8px #a64dff;
+}
+
+.header-icon:hover {
+  color: #d7b5ff;
+  transform: scale(1.08);
+}
+
 .login-btn {
   padding: 12px 16px;
   border: 3px solid #00ff3c !important;
@@ -100,7 +118,7 @@ button {
 .products-section {
   position: relative;
   min-height: 720px;
-  padding: 28px 6vw 120px;
+  padding: 0 6vw 120px;
   background-color: #3457e8;
   background-image: url("C:\Users\nonam\OneDrive\Desktop\leto-master\client\client\src\assets\fon.jpg");
   background-size: cover;
@@ -111,20 +129,37 @@ button {
 
 .top-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 32px;
   position: relative;
   z-index: 5;
+  min-height: 190px;
+}
+
+.section-heading-row {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  margin: 10px 0 44px;
 }
 
 .small-photo-placeholder {
-  width: 120px;
-  height: 68px;
-  background: #eeeeee;
-  color: #c8c8c8;
+  width: 270px;
+  height: 210px;
+  background: transparent;
   display: grid;
   place-items: center;
-  border: 3px solid #d8d8d8;
+  overflow: visible;
+  margin-top: -40px;
+  margin-left: -40px;
+}
+
+.small-photo-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .catalog-btn {
@@ -190,7 +225,7 @@ button {
 
 .section-title {
   width: fit-content;
-  margin: 42px 0 44px;
+  margin: 0;
   font-family: "Press Start 2P", monospace;
   font-size: 24px;
   color: white;
@@ -423,52 +458,6 @@ button {
 .about-section p {
   margin: 0 auto;
   max-width: 1250px;
-  font-family: "Press Start 2P", monospace;
-  font-size: 12px;
-  line-height: 2;
-}
-
-/* CONTACTS */
-
-.contacts-section {
-  min-height: 650px;
-  padding: 80px 6vw;
-  background: #202020;
-  text-align: center;
-}
-
-.contacts-section h2 {
-  margin: 0 0 70px;
-  font-family: "Press Start 2P", monospace;
-  font-size: clamp(32px, 5vw, 62px);
-}
-
-.contacts-subtitle {
-  max-width: 800px;
-  margin: 0 auto 110px;
-  font-family: "Press Start 2P", monospace;
-  line-height: 2;
-}
-
-.contacts-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 70px;
-}
-
-.contact-icon {
-  font-size: 58px;
-  color: #eaeaea;
-  margin-bottom: 52px;
-}
-
-.contact-card h3 {
-  font-family: "Press Start 2P", monospace;
-  font-size: 20px;
-  margin-bottom: 38px;
-}
-
-.contact-card p {
   font-family: "Press Start 2P", monospace;
   font-size: 12px;
   line-height: 2;
@@ -916,4 +905,941 @@ button {
   background: #842bff;
   color: #ffffff;
   cursor: pointer;
+}
+/* ПОДВАЛ САЙТА */
+
+.site-footer {
+  position: relative;
+  min-height: 360px;
+  padding: 32px 46px 155px;
+  background-color: #000000;
+  background-image: url("./assets/fon2.jpg");
+  background-size: cover;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  color: #ffffff;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 48px;
+  align-items: start;
+  overflow: hidden;
+  border-top: 4px solid #111;
+}
+
+.footer-logo-box {
+  width: 220px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.footer-logo-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: transparent;
+}
+
+.footer-info {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 34px;
+  align-items: start;
+}
+
+.footer-block {
+  min-width: 0;
+}
+
+.footer-block h2 {
+  margin: 0 0 22px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 15px;
+  color: #ffffff;
+  line-height: 1.5;
+  text-shadow:
+    3px 3px 0 #000000,
+    0 0 10px rgba(132, 43, 255, 0.9),
+    0 0 16px rgba(255, 255, 255, 0.8);
+}
+
+.footer-block p,
+.footer-block a {
+  display: block;
+  margin: 0 0 14px;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  line-height: 1.7;
+  text-decoration: none;
+  text-shadow:
+    2px 2px 0 #000000,
+    0 0 8px rgba(255, 255, 255, 0.8),
+    0 0 12px rgba(132, 43, 255, 0.8);
+}
+
+.footer-block a:hover {
+  color: #14ff42;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.social-btn {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: grid !important;
+  place-items: center;
+  color: #ffffff !important;
+  text-decoration: none;
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px !important;
+  text-shadow:
+    2px 2px 0 #000000,
+    0 0 8px #ffffff !important;
+  box-shadow:
+    0 0 18px currentColor,
+    inset 0 0 16px rgba(255, 255, 255, 0.28);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.social-btn:hover {
+  transform: translateY(-5px) scale(1.06);
+  filter: brightness(1.2);
+}
+
+.social-btn.tg {
+  background: #00cfff;
+}
+
+.social-btn.vk {
+  background: #3578ff;
+}
+
+.social-btn.mail {
+  background: #2500ff;
+}
+
+/* адаптив подвала */
+
+@media (max-width: 1100px) {
+  .site-footer {
+    grid-template-columns: 1fr;
+    padding: 32px 24px 170px;
+  }
+
+  .footer-logo-box {
+    margin: 0 auto;
+  }
+
+  .footer-info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .footer-info {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-block {
+    text-align: center;
+  }
+
+  .social-buttons {
+    justify-content: center;
+  }
+}
+.favorite-btn.active {
+  color: #ff3b8d;
+  text-shadow:
+    2px 2px 0 #000,
+    0 0 12px #ff3b8d,
+    0 0 18px #ffffff;
+}
+
+.empty-favorites {
+  max-width: 850px;
+  margin: 40px auto 0;
+  padding: 38px;
+  border: 5px solid #111;
+  border-radius: 24px;
+  background: #2d2d2d;
+  color: #ffffff;
+  text-align: center;
+  box-shadow:
+    10px 10px 0 #111,
+    0 0 24px rgba(132, 43, 255, 0.55);
+}
+
+.empty-favorites p {
+  margin: 0 0 26px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.empty-favorites button {
+  padding: 16px 24px;
+  border: 4px solid #14ff42;
+  border-radius: 14px;
+  background: #842bff;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(20, 255, 66, 0.65);
+}
+
+.favorites-grid {
+  margin-top: 30px;
+}
+/* КОРЗИНА */
+
+.cart-page {
+  min-height: calc(100vh - 72px);
+  padding: 46px 6vw 100px;
+  background-color: #3457e8;
+  background-image: url("./assets/fon.jpg");
+  background-size: cover;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  color: white;
+}
+
+.cart-page h1 {
+  width: fit-content;
+  margin: 0 0 42px;
+  padding-bottom: 14px;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(26px, 4vw, 42px);
+  color: #ffffff;
+  text-shadow: 0 0 12px #8b2cff;
+  border-bottom: 8px solid #14ff42;
+}
+
+.empty-cart {
+  max-width: 850px;
+  margin: 50px auto;
+  padding: 42px;
+  border: 5px solid #111;
+  border-radius: 24px;
+  background: #2d2d2d;
+  color: #ffffff;
+  text-align: center;
+  box-shadow:
+    10px 10px 0 #111,
+    0 0 24px rgba(132, 43, 255, 0.55);
+}
+
+.empty-cart img {
+  width: 160px;
+  height: auto;
+  margin-bottom: 24px;
+  background: transparent;
+}
+
+.empty-cart p {
+  margin: 0 0 28px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.empty-cart button {
+  padding: 16px 24px;
+  border: 4px solid #14ff42;
+  border-radius: 14px;
+  background: #842bff;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(20, 255, 66, 0.65);
+}
+
+.cart-layout {
+  display: grid;
+  grid-template-columns: 1fr 390px;
+  gap: 38px;
+  align-items: start;
+}
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 130px 1fr 180px 160px 60px;
+  gap: 24px;
+  align-items: center;
+  padding: 22px;
+  border: 5px solid #111;
+  border-radius: 22px;
+  background: #2d2d2d;
+  box-shadow: 8px 8px 0 #111;
+}
+
+.cart-item-image {
+  width: 130px;
+  height: 160px;
+  display: grid;
+  place-items: center;
+  border: 4px solid #d8d8d8;
+  background: #eeeeee;
+  color: #c6c6c6;
+  font-family: "Press Start 2P", monospace;
+}
+
+.cart-item-info h2 {
+  margin: 0 0 22px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.cart-item-info p {
+  margin: 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 11px;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #3a3548;
+  overflow: hidden;
+}
+
+.quantity-control button {
+  width: 54px;
+  height: 48px;
+  border: none;
+  background: #842bff;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.quantity-control span {
+  width: 60px;
+  text-align: center;
+  font-family: "Press Start 2P", monospace;
+}
+
+.cart-item-total {
+  font-family: "Press Start 2P", monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.cart-delete {
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.cart-summary {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.cart-summary-logo {
+  width: 150px;
+  margin: 0 auto;
+  background: transparent;
+}
+
+.promo-box,
+.delivery-box,
+.total-box {
+  padding: 24px;
+  border: 5px solid #111;
+  border-radius: 22px;
+  background: #2d2d2d;
+  box-shadow: 8px 8px 0 #111;
+}
+
+.promo-box h2,
+.delivery-box h2,
+.total-box h2 {
+  margin: 0 0 18px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.promo-row {
+  display: grid;
+  grid-template-columns: 1fr 54px;
+  gap: 10px;
+}
+
+.promo-row input {
+  min-width: 0;
+  padding: 14px;
+  border: 4px solid #111;
+  border-radius: 12px;
+  background: #eeeeee;
+  color: #111;
+}
+
+.promo-row button {
+  border: 4px solid #14ff42;
+  border-radius: 12px;
+  background: #842bff;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.promo-box p,
+.delivery-box p,
+.delivery-box li,
+.total-box p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.delivery-box ul {
+  padding-left: 20px;
+  margin: 18px 0 0;
+}
+
+.total-box button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 18px;
+  border: 4px solid #14ff42;
+  border-radius: 14px;
+  background: #842bff;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(20, 255, 66, 0.65);
+}
+
+@media (max-width: 1150px) {
+  .cart-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-summary {
+    position: static;
+  }
+
+  .cart-item {
+    grid-template-columns: 110px 1fr;
+  }
+
+  .quantity-control,
+  .cart-item-total,
+  .cart-delete {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 650px) {
+  .cart-item {
+    grid-template-columns: 1fr;
+  }
+
+  .quantity-control,
+  .cart-item-total,
+  .cart-delete {
+    grid-column: auto;
+  }
+
+  .cart-item-image {
+    width: 100%;
+  }
+}
+/* СТРАНИЦА ВСЕ ВСЕЛЕННЫЕ */
+
+.universes-page {
+  min-height: calc(100vh - 72px);
+  padding: 46px 6vw 100px;
+  background-color: #3457e8;
+  background-image: url("./assets/fon.jpg");
+  background-size: cover;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  color: white;
+}
+
+.universes-page h1 {
+  width: fit-content;
+  margin: 0 0 28px;
+  padding-bottom: 14px;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(24px, 4vw, 42px);
+  color: #ffffff;
+  text-shadow: 0 0 12px #8b2cff;
+  border-bottom: 8px solid #14ff42;
+}
+
+.universes-text {
+  max-width: 850px;
+  margin: 0 0 44px;
+  padding: 24px;
+  border: 5px solid #111;
+  border-radius: 22px;
+  background: #2d2d2d;
+  box-shadow:
+    8px 8px 0 #111,
+    0 0 24px rgba(132, 43, 255, 0.55);
+  font-family: "Press Start 2P", monospace;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.universes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 34px;
+}
+
+.universe-card {
+  min-height: 260px;
+  padding: 28px;
+  border: 5px solid #111;
+  border-radius: 24px;
+  background: #2d2d2d;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow:
+    8px 8px 0 #111,
+    0 0 24px rgba(132, 43, 255, 0.45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.universe-card:hover {
+  transform: translateY(-7px);
+  box-shadow:
+    8px 14px 0 #111,
+    0 0 28px rgba(20, 255, 66, 0.5);
+}
+
+.universe-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 22px;
+  background: transparent;
+}
+
+.universe-card span {
+  display: block;
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  text-align: center;
+  text-shadow: 0 0 10px #8b2cff;
+}
+
+@media (max-width: 1000px) {
+  .universes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .universes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .universes-text {
+    font-size: 11px;
+  }
+}
+/* СТРАНИЦА О НАС */
+
+.about-page {
+  min-height: calc(100vh - 72px);
+  background: #0c0f1c;
+  color: #20ff5f;
+  font-family: "Press Start 2P", monospace;
+  overflow: hidden;
+}
+
+.about-hero,
+.about-project-info {
+  position: relative;
+  padding: 54px 12vw;
+  background: #4b0076;
+  color: #20ff5f;
+  overflow: hidden;
+}
+
+.about-hero h1 {
+  width: fit-content;
+  margin: 0 0 34px;
+  padding-bottom: 8px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #20ff5f;
+  border-bottom: 8px solid #b000ff;
+  text-shadow: 0 0 10px rgba(32, 255, 95, 0.9);
+}
+
+.about-hero p,
+.about-project-info p {
+  max-width: 1220px;
+  margin: 0 0 34px;
+  font-size: 13px;
+  line-height: 2.2;
+  color: #20ff5f;
+  text-shadow: 0 0 8px rgba(32, 255, 95, 0.65);
+}
+
+.about-glow {
+  position: absolute;
+  border-radius: 50%;
+  background: #bc00ff;
+  filter: blur(10px);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.about-glow-one {
+  width: 105px;
+  height: 105px;
+  top: -45px;
+  right: 12%;
+}
+
+.about-glow-two {
+  width: 170px;
+  height: 170px;
+  right: 6%;
+  top: -70px;
+}
+
+.about-glow-three {
+  width: 240px;
+  height: 240px;
+  left: 6%;
+  top: -90px;
+  opacity: 0.28;
+}
+
+.about-glow-four {
+  width: 190px;
+  height: 190px;
+  right: 9%;
+  bottom: -45px;
+}
+
+.about-team {
+  padding: 70px 10vw 80px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 38px;
+  background: #1a1027;
+}
+
+.team-card {
+  position: relative;
+  min-height: 170px;
+  padding: 42px 28px 28px;
+  border: 4px solid #433061;
+  background: #211633;
+  color: #d7d0ff;
+  box-shadow: 0 0 18px rgba(132, 43, 255, 0.35);
+}
+
+.team-avatar {
+  position: absolute;
+  top: -48px;
+  left: 24px;
+  width: 70px;
+  height: 70px;
+  display: grid;
+  place-items: center;
+  border: 4px solid #433061;
+  background: #30204b;
+  font-size: 36px;
+  image-rendering: pixelated;
+}
+
+.team-card h2 {
+  margin: 0 0 20px;
+  color: #8d7aad;
+  font-size: 9px;
+  letter-spacing: 4px;
+}
+
+.team-card p {
+  margin: 0;
+  color: #d7d0ff;
+  font-size: 10px;
+  line-height: 2;
+}
+
+.terminal-cursor {
+  color: #ffffff;
+  text-shadow: 0 0 8px #ffffff;
+}
+
+.about-project-info {
+  padding-top: 42px;
+  padding-bottom: 46px;
+}
+
+.about-character {
+  padding: 90px 10vw;
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  gap: 70px;
+  align-items: center;
+  background: #0c0f1c;
+}
+
+.mascot-box {
+  text-align: center;
+}
+
+.mascot-box img {
+  width: 260px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgba(32, 255, 95, 0.25));
+}
+
+.mascot-box span {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 12px 28px;
+  border: 2px solid #1b2b45;
+  color: #20ff5f;
+  font-size: 10px;
+  letter-spacing: 4px;
+}
+
+.stats-panel {
+  position: relative;
+  padding: 34px;
+  border: 2px solid #223250;
+  background: rgba(18, 23, 40, 0.88);
+  box-shadow: 0 0 20px rgba(32, 255, 95, 0.1);
+}
+
+.stats-panel::before,
+.stats-panel::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: #20ff5f;
+}
+
+.stats-panel::before {
+  top: -2px;
+  left: -2px;
+  border-top: 3px solid;
+  border-left: 3px solid;
+}
+
+.stats-panel::after {
+  right: -2px;
+  bottom: -2px;
+  border-right: 3px solid;
+  border-bottom: 3px solid;
+}
+
+.stats-panel h2 {
+  margin: 0 0 34px;
+  color: #20ff5f;
+  font-size: 12px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.stat-row {
+  margin-bottom: 24px;
+}
+
+.stat-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: #8c91aa;
+  font-size: 10px;
+  letter-spacing: 5px;
+}
+
+.stat-line {
+  height: 8px;
+  background: #1a2240;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+}
+
+.stat-fill.green {
+  background: repeating-linear-gradient(
+    90deg,
+    #20ff5f 0 5px,
+    #64ff85 5px 8px
+  );
+}
+
+.stat-fill.cyan {
+  background: repeating-linear-gradient(
+    90deg,
+    #00d9ff 0 5px,
+    #5df0ff 5px 8px
+  );
+}
+
+.stat-fill.yellow {
+  background: repeating-linear-gradient(
+    90deg,
+    #ffd136 0 5px,
+    #ffec72 5px 8px
+  );
+}
+
+.stat-fill.pink {
+  background: repeating-linear-gradient(
+    90deg,
+    #ff3b8d 0 5px,
+    #ff6bad 5px 8px
+  );
+}
+
+.stat-fill.purple {
+  background: repeating-linear-gradient(
+    90deg,
+    #b000ff 0 5px,
+    #d45cff 5px 8px
+  );
+}
+
+.special-box {
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid #25324f;
+}
+
+.special-box h3 {
+  margin: 0 0 16px;
+  color: #ffbc2b;
+  font-size: 10px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.special-box p {
+  margin: 0;
+  color: #d7d0ff;
+  font-size: 10px;
+  line-height: 2;
+}
+
+.about-achievements {
+  padding: 40px 10vw 90px;
+  background: #0c0f1c;
+}
+
+.about-achievements h2 {
+  margin: 0 0 32px;
+  color: #20ff5f;
+  font-size: 12px;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 22px;
+}
+
+.achievement-card {
+  min-height: 180px;
+  padding: 26px 14px;
+  border: 2px solid #223250;
+  background: rgba(18, 23, 40, 0.72);
+  text-align: center;
+}
+
+.achievement-card.unlocked {
+  border-color: #20ff5f;
+  box-shadow: 0 0 18px rgba(32, 255, 95, 0.25);
+}
+
+.achievement-card.locked {
+  opacity: 0.22;
+}
+
+.achievement-icon {
+  margin-bottom: 34px;
+  color: #ffbc2b;
+  font-size: 30px;
+}
+
+.achievement-card h3 {
+  margin: 0 0 12px;
+  color: #d7d0ff;
+  font-size: 9px;
+  letter-spacing: 3px;
+}
+
+.achievement-card p {
+  margin: 0;
+  color: #20ff5f;
+  font-size: 8px;
+  line-height: 1.6;
+}
+
+@media (max-width: 1100px) {
+  .about-team {
+    grid-template-columns: 1fr;
+    gap: 70px;
+  }
+
+  .about-character {
+    grid-template-columns: 1fr;
+  }
+
+  .achievements-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .about-hero,
+  .about-project-info,
+  .about-character,
+  .about-team,
+  .about-achievements {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .about-hero p,
+  .about-project-info p {
+    font-size: 10px;
+  }
+
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
 }
