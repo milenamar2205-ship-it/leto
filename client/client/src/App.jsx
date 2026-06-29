@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
+import mainLogo from "./assets/logo.png";
+import footerLogo from "./assets/logo.png";
+import cartLogo from "./assets/logo2.png";
+import marvelLogo from "./assets/marvel.png";
+import starWarsLogo from "./assets/starwars.png";
+import dcLogo from "./assets/dc.png";
+import animeLogo from "./assets/anime.png";
+import gamesLogo from "./assets/games.png";
+import aboutMascot from "./assets/logo3.png";
 
 const products = [
   { title: "Фигурка героя", price: "2 499 ₽" },
@@ -87,11 +96,16 @@ function Header({ setPage }) {
         <button onClick={() => setPage("home")}>Главная</button>
         <button onClick={() => setPage("products")}>Все товары</button>
         <button onClick={() => setPage("universes")}>Выбери свою вселенную</button>
+        <button onClick={() => setPage("about")}>О нас</button>
       </nav>
 
       <div className="header-actions">
-        <button onClick={() => setPage("favorites")}>♡</button>
-        <button onClick={() => setPage("cart")}>⌑</button>
+        <button className="header-icon" onClick={() => setPage("favorites")}>
+          ♡
+        </button>
+        <button className="header-icon" onClick={() => setPage("cart")}>
+          🛒
+        </button>
         <button className="login-btn" onClick={() => setPage("login")}>
           ➜ Вход
         </button>
@@ -124,15 +138,9 @@ function HomePage() {
     <main className="home">
       <section className="products-section mario-bg">
         <div className="top-row">
-          <div className="small-photo-placeholder">IMG</div>
-
-          <button
-            className="catalog-btn"
-            onMouseEnter={() => setCatalogOpen(true)}
-            onClick={() => setCatalogOpen((value) => !value)}
-          >
-            Каталог
-          </button>
+          <div className="small-photo-placeholder">
+            <img src={mainLogo} alt="FunUniverse" />
+          </div>
         </div>
 
         {catalogOpen && (
@@ -150,7 +158,17 @@ function HomePage() {
           </aside>
         )}
 
-        <h2 className="section-title">Новинки</h2>
+        <div className="section-heading-row">
+  <h2 className="section-title">Новинки</h2>
+
+  <button
+    className="catalog-btn"
+    onMouseEnter={() => setCatalogOpen(true)}
+    onClick={() => setCatalogOpen((value) => !value)}
+  >
+    Каталог
+  </button>
+</div>
 
         <div className="slider">
           <button className="slider-arrow left" onClick={prevSlide}>
@@ -178,7 +196,7 @@ function HomePage() {
 
       <DinoRunner />
 
-      <section className="about-section">
+      <section className="about-section" id="about-project">
         <h2>— Зачем вообще был создан этот проект?</h2>
         <p>
           — Мы сделали его для того чтобы больше никто и никогда не страдал от того,
@@ -191,35 +209,6 @@ function HomePage() {
         </p>
       </section>
 
-      <section className="contacts-section">
-        <h2>Наши Контакты</h2>
-        <p className="contacts-subtitle">
-          Заказы не принимаем. Кидайте товар в корзину и платите нам деньги :)
-        </p>
-
-        <div className="contacts-grid">
-          <div className="contact-card">
-            <div className="contact-icon">☎</div>
-            <h3>Контакты</h3>
-            <p>+1900-611-01-38</p>
-            <p>WearetheDuriki@company.com</p>
-          </div>
-
-          <div className="contact-card">
-            <div className="contact-icon">◷</div>
-            <h3>Время работы</h3>
-            <p>Никогда</p>
-            <p>с 15:00 до 20:00</p>
-          </div>
-
-          <div className="contact-card">
-            <div className="contact-icon">⌖</div>
-            <h3>Адрес</h3>
-            <p>Пилотов, 28.</p>
-            <p>лучше не входить...</p>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
@@ -524,13 +513,13 @@ function DinoRunner() {
   );
 }
 
-function LoginPage() {
+function LoginPage({ currentUser, setCurrentUser }) {
   const [mode, setMode] = useState("login");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
-  const [currentUser, setCurrentUser] = useState("");
+  
 
   async function sendAuthRequest(event) {
     event.preventDefault();
@@ -655,10 +644,24 @@ function StubPage({ title }) {
   );
 }
 
-function ProductsPage() {
+function ProductsPage({
+  currentUser,
+  favorites,
+  toggleFavorite,
+  setPage,
+  addToCart,
+  selectedUniverseFromPage,
+  setSelectedUniverseFromPage,
+}) {
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedUniverses, setSelectedUniverses] = useState([]);
+  useEffect(() => {
+    if (selectedUniverseFromPage) {
+     setSelectedUniverses([selectedUniverseFromPage]);
+     setSelectedUniverseFromPage("");
+    }
+  }, [selectedUniverseFromPage, setSelectedUniverseFromPage]);
   const [sortType, setSortType] = useState("default");
 
   const priceFilters = [
@@ -799,7 +802,20 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
           <div className="products-grid">
             {sortedProducts.map((product) => (
               <article className="shop-card" key={product.id}>
-                <button className="favorite-btn">♡</button>
+                <button
+                  className={favorites.includes(product.id) ? "favorite-btn active" : "favorite-btn"}
+                  onClick={() => {
+                    if (!currentUser) {
+                      alert("Добавлять товары в избранное можно только после регистрации или входа");
+                      setPage("login");
+                      return;
+                  }
+
+                  toggleFavorite(product.id);
+                }}
+                >
+                {favorites.includes(product.id) ? "♥" : "♡"}
+                </button>
 
                 <div className="shop-image">IMG</div>
 
@@ -813,7 +829,19 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
 
                 <div className="shop-bottom">
                   <strong>{product.price.toLocaleString("ru-RU")} ₽</strong>
-                  <button>🛒</button>
+                  <button
+                    onClick={() => {
+                      if (!currentUser) {
+                        alert("Добавлять товары в корзину можно только после регистрации или входа");
+                        setPage("login");
+                        return;
+                      }
+
+                      addToCart(product.id);
+                    }}
+                  >
+                    🛒 
+                  </button>
                 </div>
               </article>
             ))}
@@ -824,19 +852,656 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
   );
 }
 
+function Footer({ setPage }) {
+  function goToAbout(event) {
+    event.preventDefault();
+
+    setPage("home");
+
+    setTimeout(() => {
+      const aboutBlock = document.getElementById("about-project");
+
+      if (aboutBlock) {
+        aboutBlock.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 100);
+  }
+
+  return (
+    <footer className="site-footer">
+      <div className="footer-logo-box">
+        <img src={footerLogo} alt="FunUniverse logo" />
+      </div>
+
+      <div className="footer-info">
+        <div className="footer-block">
+          <h2>Соц-сети</h2>
+
+          <div className="social-buttons">
+            <a
+              href="https://t.me/FunUniverseo3o"
+              target="_blank"
+              rel="noreferrer"
+              className="social-btn tg"
+            >
+              Tg
+            </a>
+
+            <a
+              href="https://vk.com/sndk_tv?ysclid=mqy5za2b3t428340004"
+              target="_blank"
+              rel="noreferrer"
+              className="social-btn vk"
+            >
+              Vk
+            </a>
+
+            <a
+              href="https://e.mail.ru/cgi-bin/sentmsg?To=milenamar@bk.ru&from=otvet"
+              target="_blank"
+              rel="noreferrer"
+              className="social-btn mail"
+            >
+              @
+            </a>
+          </div>
+        </div>
+
+        <div className="footer-block">
+  <h2>Контакты</h2>
+  <p>+7 900 671 0138</p>
+  <p>+7 929 306 2311</p>
+  <p>+7 996 736 1775</p>
+</div>
+
+        <div className="footer-block">
+          <h2>Часы работы</h2>
+          <p>с 15:00 до 20:00</p>
+        </div>
+
+        <div className="footer-block">
+          <h2>О проекте</h2>
+          <a href="#about-project" onClick={goToAbout}>
+            Зачем вообще был создан этот проект?
+          </a>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function FavoritesPage({ currentUser, favorites, toggleFavorite, setPage }) {
+  const favoriteProducts = allProducts.filter((product) =>
+    favorites.includes(product.id)
+  );
+
+  return (
+    <main className="products-page favorites-page">
+      <h1>Избранное</h1>
+
+      {!currentUser && (
+        <div className="empty-favorites">
+          <p>Добавлять товары в избранное можно только после регистрации.</p>
+          <button onClick={() => setPage("login")}>Войти / создать аккаунт</button>
+        </div>
+      )}
+
+      {currentUser && favoriteProducts.length === 0 && (
+        <div className="empty-favorites">
+          <p>Вы пока не выбрали свои любимые товары :(</p>
+          <button onClick={() => setPage("products")}>Перейти ко всем товарам</button>
+        </div>
+      )}
+
+      {currentUser && favoriteProducts.length > 0 && (
+        <div className="products-grid favorites-grid">
+          {favoriteProducts.map((product) => (
+            <article className="shop-card" key={product.id}>
+              <button
+                className="favorite-btn active"
+                onClick={() => toggleFavorite(product.id)}
+              >
+                ♥
+              </button>
+
+              <div className="shop-image">IMG</div>
+
+              <h3>{product.title}</h3>
+
+              <div className="shop-bottom">
+                <strong>{product.price.toLocaleString("ru-RU")} ₽</strong>
+                <button>🛒</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </main>
+  );
+}
+
+function CartPage({
+  currentUser,
+  cart,
+  changeCartQuantity,
+  removeFromCart,
+  setPage,
+}) {
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState("");
+  const [promoMessage, setPromoMessage] = useState("");
+
+  const cartProducts = cart
+    .map((cartItem) => {
+      const product = allProducts.find((item) => item.id === cartItem.id);
+
+      if (!product) {
+        return null;
+      }
+
+      return {
+        ...product,
+        quantity: cartItem.quantity,
+      };
+    })
+    .filter(Boolean);
+
+  const subtotal = cartProducts.reduce((sum, product) => {
+    return sum + product.price * product.quantity;
+  }, 0);
+
+  const discount = appliedPromo === "FunUniverse" ? subtotal * 0.1 : 0;
+  const total = subtotal - discount;
+
+  function applyPromo() {
+    if (promoCode.trim() === "FunUniverse") {
+      setAppliedPromo("FunUniverse");
+      setPromoMessage("Промокод применён: скидка 10%");
+    } else {
+      setAppliedPromo("");
+      setPromoMessage("Такого промокода нет");
+    }
+  }
+
+  if (!currentUser) {
+    return (
+      <main className="cart-page">
+        <h1>Корзина</h1>
+
+        <div className="empty-cart">
+          <img src={cartLogo} alt="Корзина" />
+          <p>ваша корзина пока пуста</p>
+          <button onClick={() => setPage("login")}>Войти / создать аккаунт</button>
+        </div>
+      </main>
+    );
+  }
+
+  if (cartProducts.length === 0) {
+    return (
+      <main className="cart-page">
+        <h1>Корзина</h1>
+
+        <div className="empty-cart">
+          <img src={cartLogo} alt="Корзина" />
+          <p>ваша корзина пока пуста</p>
+          <button onClick={() => setPage("products")}>Перейти ко всем товарам</button>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="cart-page">
+      <h1>Корзина</h1>
+
+      <div className="cart-layout">
+        <section className="cart-items">
+          {cartProducts.map((product) => (
+            <article className="cart-item" key={product.id}>
+              <div className="cart-item-image">IMG</div>
+
+              <div className="cart-item-info">
+                <h2>{product.title}</h2>
+                <p>{product.price.toLocaleString("ru-RU")} ₽ / шт</p>
+              </div>
+
+              <div className="quantity-control">
+                <button
+                  onClick={() =>
+                    changeCartQuantity(product.id, product.quantity - 1)
+                  }
+                >
+                  −
+                </button>
+
+                <span>{product.quantity}</span>
+
+                <button
+                  onClick={() =>
+                    changeCartQuantity(product.id, product.quantity + 1)
+                  }
+                >
+                  +
+                </button>
+              </div>
+
+              <strong className="cart-item-total">
+                {(product.price * product.quantity).toLocaleString("ru-RU")} ₽
+              </strong>
+
+              <button
+                className="cart-delete"
+                onClick={() => removeFromCart(product.id)}
+              >
+                🗑
+              </button>
+            </article>
+          ))}
+        </section>
+
+        <aside className="cart-summary">
+          <img className="cart-summary-logo" src={cartLogo} alt="FunUniverse" />
+
+          <div className="promo-box">
+            <h2>Промокод</h2>
+
+            <div className="promo-row">
+              <input
+                type="text"
+                placeholder="Введите промокод"
+                value={promoCode}
+                onChange={(event) => setPromoCode(event.target.value)}
+              />
+
+              <button onClick={applyPromo}>✓</button>
+            </div>
+
+            {promoMessage && <p>{promoMessage}</p>}
+          </div>
+
+          <div className="delivery-box">
+            <h2>Бесплатная доставка</h2>
+
+            <p>
+              Заполняйте корзину товарами, и бесплатная доставка будет
+              автоматически включена!
+            </p>
+
+            <ul>
+              <li>
+                При заказе от 1000 ₽: Бесплатная доставка почтой России в Москву
+              </li>
+              <li>
+                При заказе от 3000 ₽: Бесплатная доставка почтой России в ближние
+                регионы
+              </li>
+              <li>
+                При заказе от 5000 ₽: Бесплатная доставка в Магаданскую, Амурскую,
+                Иркутскую области, Хабаровский, Приморский, Забайкальский,
+                Камчатский край, Якутию, Бурятию, Еврейский АО, Чукотский АО
+              </li>
+            </ul>
+          </div>
+
+          <div className="total-box">
+            <p>Сумма товаров: {subtotal.toLocaleString("ru-RU")} ₽</p>
+
+            {appliedPromo && (
+              <p>Скидка: −{discount.toLocaleString("ru-RU")} ₽</p>
+            )}
+
+            <h2>Итого: {total.toLocaleString("ru-RU")} ₽</h2>
+
+            <button>Оформить заказ</button>
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
+}
+
+function UniversesPage({ setPage, setSelectedUniverseFromPage }) {
+  const universesList = [
+    {
+      title: "Marvel",
+      value: "Marvel",
+      image: marvelLogo,
+    },
+    {
+      title: "Star Wars",
+      value: "Star Wars",
+      image: starWarsLogo,
+    },
+    {
+      title: "DC",
+      value: "DC",
+      image: dcLogo,
+    },
+    {
+      title: "Anime",
+      value: "Anime",
+      image: animeLogo,
+    },
+    {
+      title: "Games",
+      value: "Games",
+      image: gamesLogo,
+    },
+  ];
+
+  function openUniverse(universe) {
+    setSelectedUniverseFromPage(universe);
+    setPage("products");
+  }
+
+  return (
+    <main className="universes-page">
+      <h1>Выбери свою вселенную</h1>
+
+      <p className="universes-text">
+        Нажми на логотип, чтобы увидеть товары из выбранной вселенной
+      </p>
+
+      <div className="universes-grid">
+        {universesList.map((universe) => (
+          <button
+            className="universe-card"
+            key={universe.value}
+            onClick={() => openUniverse(universe.value)}
+          >
+            <img src={universe.image} alt={universe.title} />
+            <span>{universe.title}</span>
+          </button>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+function AboutPage() {
+  const team = [
+    {
+      name: "DAYESA012",
+      text: "Отвечаем за то, чтобы сайт выглядел так, будто его нашли в заброшенной аркаде 90-х...",
+      avatar: "🧑‍💻",
+    },
+    {
+      name: "NONAMMM01",
+      text: "Колдуем над багами и делаем так, чтобы динозаврик бегал, а сайт работал без перебоев в ваше удовольствие.",
+      avatar: "🧙‍♀️",
+    },
+    {
+      name: "KKSE311",
+      text: "Знаем, где находится та самая пасхалка в «очень странных делах», и следим за качеством принтов и оригинальностью.",
+      avatar: "🧝",
+    },
+  ];
+
+  const stats = [
+    { title: "Сила", value: 87, className: "green" },
+    { title: "Ловкость", value: 64, className: "cyan" },
+    { title: "Интеллект", value: 72, className: "yellow" },
+    { title: "Выносливость", value: 58, className: "pink" },
+    { title: "Удача", value: 91, className: "purple" },
+  ];
+
+  const achievements = [
+    {
+      icon: "◉",
+      title: "Первый раз",
+      text: "Впервые посетил наш сайт",
+      unlocked: true,
+    },
+    {
+      icon: "▣",
+      title: "Знаток",
+      text: "Нашёл страницу «О нас»",
+      unlocked: true,
+    },
+    {
+      icon: "☆",
+      title: "Звезда",
+      text: "Провёл на сайте больше минуты",
+      unlocked: true,
+    },
+    {
+      icon: "🔒",
+      title: "Сокровище",
+      text: "???",
+      unlocked: false,
+    },
+    {
+      icon: "🎮",
+      title: "Непробиваемый",
+      text: "???",
+      unlocked: false,
+    },
+    {
+      icon: "☆",
+      title: "Легенда",
+      text: "???",
+      unlocked: false,
+    },
+  ];
+
+  return (
+    <main className="about-page">
+      <section className="about-hero">
+        <div className="about-glow about-glow-one"></div>
+        <div className="about-glow about-glow-two"></div>
+
+        <h1>ВНИМАНИЕ! Инфа о нас!</h1>
+
+        <p>
+          Привет, путешественник по вселенным! Добро пожаловать в{" "}
+          <b>Fun Universe</b> — это место, где поп-культура встречается с
+          пиксельным прошлым.
+        </p>
+
+        <p>
+          Мы — простые человека, которые устали искать мерч по различным
+          мульти-вселенным, и хотим, чтоб каждый без труда мог получить крутой
+          мерч. Мы взяли старые аркадные автоматы, смешали их с любовью к кино,
+          аниме и играм, и создали это уютное место, которое примет любого
+          независимо от его любимой вселенной.
+        </p>
+      </section>
+
+      <section className="about-team">
+        {team.map((person) => (
+          <article className="team-card" key={person.name}>
+            <div className="team-avatar">{person.avatar}</div>
+            <h2>{person.name}</h2>
+            <p>{person.text}<span className="terminal-cursor">█</span></p>
+          </article>
+        ))}
+      </section>
+
+      <section className="about-project-info">
+        <div className="about-glow about-glow-three"></div>
+        <div className="about-glow about-glow-four"></div>
+
+        <p>
+          <b>Fun Universe</b> — это студенческий e-commerce проект,
+          специализирующийся на продаже тематического мерча по популярным
+          вселенным: кино, игры, аниме.
+        </p>
+
+        <p>
+          Платформа представляет собой интернет-магазин с уникальной концепцией:
+          ретро-аркадный стиль оформления, дополненный игровыми механиками для
+          повышения вовлеченности пользователей. Проект реализован командой из
+          трёх разработчиков в рамках учебной деятельности.
+        </p>
+
+        <p>
+          <b>Целевая аудитория:</b> молодые люди от 16 до 30 лет, фанаты
+          поп-культуры, гик-сообщества.
+          <br />
+          <b>Цель проекта:</b> создание функционального и эстетически
+          привлекательного маркетплейса с высоким уровнем пользовательского
+          вовлечения.
+        </p>
+      </section>
+
+      <section className="about-character">
+        <div className="mascot-box">
+          <img src={aboutMascot} alt="Наш маскот" />
+          <span>НАШ МАСКОТ</span>
+        </div>
+
+        <div className="stats-panel">
+          <h2>▣ Характеристики</h2>
+
+          {stats.map((stat) => (
+            <div className="stat-row" key={stat.title}>
+              <div className="stat-top">
+                <span>{stat.title}</span>
+                <span>{stat.value}</span>
+              </div>
+
+              <div className="stat-line">
+                <div
+                  className={`stat-fill ${stat.className}`}
+                  style={{ width: `${stat.value}%` }}
+                ></div>
+              </div>
+            </div>
+          ))}
+
+          <div className="special-box">
+            <h3>★ Особенность</h3>
+            <p>
+              «Misk» — в темноте все характеристики увеличиваются на 20%.
+              Находить коллекционки без усилий | Никогда не проигрывать в
+              аркадные игры.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="about-achievements">
+        <h2>Достижения</h2>
+
+        <div className="achievements-grid">
+          {achievements.map((achievement) => (
+            <article
+              className={
+                achievement.unlocked
+                  ? "achievement-card unlocked"
+                  : "achievement-card locked"
+              }
+              key={achievement.title}
+            >
+              <div className="achievement-icon">{achievement.icon}</div>
+              <h3>{achievement.title}</h3>
+              <p>{achievement.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function App() {
   const [page, setPage] = useState("home");
+  const [selectedUniverseFromPage, setSelectedUniverseFromPage] = useState("");
+  const [cart, setCart] = useState([]);
+const [currentUser, setCurrentUser] = useState("");
+const [favorites, setFavorites] = useState([]);
+function toggleFavorite(productId) {
+  if (favorites.includes(productId)) {
+    setFavorites(favorites.filter((id) => id !== productId));
+  } else {
+    setFavorites([...favorites, productId]);
+  }
+}
+function addToCart(productId) {
+  setCart((currentCart) => {
+    const existingProduct = currentCart.find((item) => item.id === productId);
 
+    if (existingProduct) {
+      return currentCart.map((item) =>
+        item.id === productId
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+    }
+
+    return [...currentCart, { id: productId, quantity: 1 }];
+  });
+}
+
+function changeCartQuantity(productId, quantity) {
+  if (quantity <= 0) {
+    setCart((currentCart) =>
+      currentCart.filter((item) => item.id !== productId)
+    );
+    return;
+  }
+
+  setCart((currentCart) =>
+    currentCart.map((item) =>
+      item.id === productId ? { ...item, quantity: quantity } : item
+    )
+  );
+}
+
+function removeFromCart(productId) {
+  setCart((currentCart) =>
+    currentCart.filter((item) => item.id !== productId)
+  );
+}
   return (
     <div className="app">
       <Header setPage={setPage} />
 
       {page === "home" && <HomePage />}
-      {page === "products" && <ProductsPage />}
-      {page === "universes" && <StubPage title="Выбери свою вселенную" />}
-      {page === "favorites" && <StubPage title="Избранное" />}
-      {page === "cart" && <StubPage title="Корзина" />}
-      {page === "login" && <LoginPage />}
+      {page === "products" && (
+        <ProductsPage
+          currentUser={currentUser}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
+          setPage={setPage}
+          addToCart={addToCart}
+          selectedUniverseFromPage={selectedUniverseFromPage}
+          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+        />
+      )}
+      {page === "universes" && (
+        <UniversesPage
+          setPage={setPage}
+          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+        />
+      )}
+      {page === "about" && <AboutPage />}
+      {page === "favorites" && (
+        <FavoritesPage
+          currentUser={currentUser}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
+          setPage={setPage}
+        />
+      )}
+      {page === "cart" && (
+        <CartPage
+          currentUser={currentUser}
+          cart={cart}
+          changeCartQuantity={changeCartQuantity}
+          removeFromCart={removeFromCart}
+          setPage={setPage}
+        />
+      )}
+      {page === "login" && (
+        <LoginPage currentUser={currentUser} setCurrentUser={setCurrentUser} />
+     )}
+
+      <Footer setPage={setPage} />
     </div>
   );
 }
