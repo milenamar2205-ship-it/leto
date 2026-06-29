@@ -85,7 +85,7 @@ const allProducts = [
 },
 ];
 
-function Header({ setPage }) {
+function Header({ setPage, currentUser }) {
   return (
     <header className="site-header">
       <button className="logo" onClick={() => setPage("home")}>
@@ -106,9 +106,21 @@ function Header({ setPage }) {
         <button className="header-icon" onClick={() => setPage("cart")}>
           🛒
         </button>
-        <button className="login-btn" onClick={() => setPage("login")}>
-          ➜ Вход
-        </button>
+        {currentUser ? (
+          <button className="profile-header-btn" onClick={() => setPage("profile")}>
+            {currentUser.avatar ? (
+              <img src={currentUser.avatar} alt="Профиль" />
+            ) : (
+              <span>
+                {(currentUser.nickname || currentUser.login || "U").charAt(0).toUpperCase()}
+              </span>
+            )}
+          </button>
+        ) : (
+          <button className="login-btn" onClick={() => setPage("login")}>
+            ➜ Вход
+          </button>
+        )}
       </div>
     </header>
   );
@@ -517,6 +529,7 @@ function LoginPage({ currentUser, setCurrentUser }) {
   const [mode, setMode] = useState("login");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
   
@@ -538,6 +551,7 @@ function LoginPage({ currentUser, setCurrentUser }) {
         body: JSON.stringify({
           login: login,
           password: password,
+          email: email,
         }),
       });
 
@@ -561,7 +575,7 @@ function LoginPage({ currentUser, setCurrentUser }) {
   }
 
   function logout() {
-    setCurrentUser("");
+    setCurrentUser(null);
     setLogin("");
     setPassword("");
     setMessage("Вы вышли из аккаунта");
@@ -576,7 +590,7 @@ function LoginPage({ currentUser, setCurrentUser }) {
         {currentUser ? (
           <div className="profile-box">
             <p>
-              Вы вошли как: <b>{currentUser}</b>
+              Вы вошли как: <b>{currentUser.nickname || currentUser.login}</b>
             </p>
             <button onClick={logout}>Выйти</button>
           </div>
@@ -607,10 +621,19 @@ function LoginPage({ currentUser, setCurrentUser }) {
             <form onSubmit={sendAuthRequest} className="login-form">
               <input
                 type="text"
-                placeholder="Придумайте логин"
+                placeholder={mode === "login" ? "Логин или почта" : "Придумайте логин"}
                 value={login}
                 onChange={(event) => setLogin(event.target.value)}
+            />
+            {mode === "register" && (
+              <input
+                type="email"
+                placeholder="Почта"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
               />
+            )}
 
               <input
                 type="password"
@@ -1004,8 +1027,9 @@ function CartPage({
 
       return {
         ...product,
-        quantity: cartItem.quantity,
+        
       };
+    
     })
     .filter(Boolean);
 
@@ -1408,11 +1432,167 @@ function AboutPage() {
   );
 }
 
+function ProfilePage({
+  currentUser,
+  setCurrentUser,
+  favorites,
+  cart,
+  setPage,
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [nickname, setNickname] = useState(currentUser?.nickname || "");
+  const [avatarPreview, setAvatarPreview] = useState(currentUser?.avatar || "");
+  const [message, setMessage] = useState("");
+
+  if (!currentUser) {
+    return (
+      <main className="profile-page">
+        <section className="profile-card">
+          <h1>Личный кабинет</h1>
+          <p>Войдите или создайте аккаунт, чтобы открыть личный кабинет.</p>
+          <button onClick={() => setPage("login")}>Войти</button>
+        </section>
+      </main>
+    );
+  }
+
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString("ru-RU");
+  }
+
+  function handleAvatarChange(event) {
+    const file = event.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function () {
+      setAvatarPreview(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  async function saveProfile() {
+    try {
+      const response = await fetch(`http://localhost:3001/api/profile/${currentUser.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nickname,
+          avatar: avatarPreview,
+        }),
+      });
+
+      const data = await response.json();
+
+      setMessage(data.message);
+
+      if (data.success) {
+        setCurrentUser(data.user);
+        setIsEditing(false);
+      }
+    } catch (error) {
+      setMessage("Ошибка соединения с сервером");
+    }
+  }
+
+  return (
+    <main className="profile-page">
+      <section className="profile-card">
+        <div className="profile-title-row">
+          <h1>Личный кабинет</h1>
+
+          <button className="edit-profile-btn" onClick={() => setIsEditing(!isEditing)}>
+            ✎
+          </button>
+        </div>
+
+        <div className="profile-content">
+          <div className="profile-avatar-block">
+            <div className="profile-avatar">
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="Аватар" />
+              ) : (
+                <span>
+                  {(currentUser.nickname || currentUser.login || "U").charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+
+            {isEditing && (
+              <label className="avatar-upload">
+                Загрузить аватар
+                <input type="file" accept="image/*" onChange={handleAvatarChange} />
+              </label>
+            )}
+          </div>
+
+          <div className="profile-info">
+            <div className="profile-row">
+              <span>Никнейм:</span>
+
+              {isEditing ? (
+                <input
+                  value={nickname}
+                  onChange={(event) => setNickname(event.target.value)}
+                />
+              ) : (
+                <b>{currentUser.nickname}</b>
+              )}
+            </div>
+
+            <div className="profile-row">
+              <span>ID пользователя:</span>
+              <b>#{currentUser.id}</b>
+            </div>
+
+            <div className="profile-row">
+              <span>Почта:</span>
+              <b>{currentUser.email || "не указана"}</b>
+            </div>
+
+            <div className="profile-row">
+              <span>Дата регистрации:</span>
+              <b>{formatDate(currentUser.registeredAt)}</b>
+            </div>
+
+            <div className="profile-row">
+              <span>Избранных товаров:</span>
+              <b>{favorites.length}</b>
+            </div>
+
+            <div className="profile-row">
+              <span>Товаров в корзине:</span>
+              <b>{cartCount}</b>
+            </div>
+
+            {isEditing && (
+              <button className="save-profile-btn" onClick={saveProfile}>
+                Сохранить
+              </button>
+            )}
+
+            {message && <p className="profile-message">{message}</p>}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function App() {
   const [page, setPage] = useState("home");
   const [selectedUniverseFromPage, setSelectedUniverseFromPage] = useState("");
   const [cart, setCart] = useState([]);
-const [currentUser, setCurrentUser] = useState("");
+const [currentUser, setCurrentUser] = useState(null);
 const [favorites, setFavorites] = useState([]);
 function toggleFavorite(productId) {
   if (favorites.includes(productId)) {
@@ -1457,53 +1637,70 @@ function removeFromCart(productId) {
     currentCart.filter((item) => item.id !== productId)
   );
 }
-  return (
-    <div className="app">
-      <Header setPage={setPage} />
+  
+return (
+  <div className="app">
+    <Header setPage={setPage} currentUser={currentUser} />
 
-      {page === "home" && <HomePage />}
-      {page === "products" && (
-        <ProductsPage
-          currentUser={currentUser}
-          favorites={favorites}
-          toggleFavorite={toggleFavorite}
-          setPage={setPage}
-          addToCart={addToCart}
-          selectedUniverseFromPage={selectedUniverseFromPage}
-          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
-        />
-      )}
-      {page === "universes" && (
-        <UniversesPage
-          setPage={setPage}
-          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
-        />
-      )}
-      {page === "about" && <AboutPage />}
-      {page === "favorites" && (
-        <FavoritesPage
-          currentUser={currentUser}
-          favorites={favorites}
-          toggleFavorite={toggleFavorite}
-          setPage={setPage}
-        />
-      )}
-      {page === "cart" && (
-        <CartPage
-          currentUser={currentUser}
-          cart={cart}
-          changeCartQuantity={changeCartQuantity}
-          removeFromCart={removeFromCart}
-          setPage={setPage}
-        />
-      )}
-      {page === "login" && (
-        <LoginPage currentUser={currentUser} setCurrentUser={setCurrentUser} />
-     )}
+    {page === "home" && <HomePage />}
 
-      <Footer setPage={setPage} />
-    </div>
-  );
+    {page === "products" && (
+      <ProductsPage
+        currentUser={currentUser}
+        favorites={favorites}
+        toggleFavorite={toggleFavorite}
+        setPage={setPage}
+        addToCart={addToCart}
+        selectedUniverseFromPage={selectedUniverseFromPage}
+        setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+      />
+    )}
+
+    {page === "universes" && (
+      <UniversesPage
+        setPage={setPage}
+        setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+      />
+    )}
+
+    {page === "about" && <AboutPage />}
+
+    {page === "favorites" && (
+      <FavoritesPage
+        currentUser={currentUser}
+        favorites={favorites}
+        toggleFavorite={toggleFavorite}
+        setPage={setPage}
+      />
+    )}
+
+    {page === "cart" && (
+      <CartPage
+        currentUser={currentUser}
+        cart={cart}
+        changeCartQuantity={changeCartQuantity}
+        removeFromCart={removeFromCart}
+        setPage={setPage}
+      />
+    )}
+
+    {page === "login" && (
+      <LoginPage currentUser={currentUser} setCurrentUser={setCurrentUser} />
+    )}
+
+    {page === "profile" && (
+      <ProfilePage
+        currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
+        favorites={favorites}
+        cart={cart}
+        setPage={setPage}
+      />
+    )}
+
+    <Footer setPage={setPage} />
+  </div>
+);
 }
 
 export default App;
