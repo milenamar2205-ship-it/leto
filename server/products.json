@@ -6,7 +6,8 @@
     "category": "Фигурки",
     "universe": "Marvel",
     "description": "Коллекционная фигурка Spider-Man",
-    "image": ""
+    "image": "",
+    "isNew": true
   },
   {
     "id": 2,
@@ -15,7 +16,8 @@
     "category": "Комиксы",
     "universe": "DC",
     "description": "Комикс Batman для коллекции",
-    "image": ""
+    "image": "",
+    "isNew": false
   },
   {
     "id": 3,
@@ -24,7 +26,8 @@
     "category": "Фигурки",
     "universe": "Anime",
     "description": "Аниме-фигурка Levi Ackerman",
-    "image": ""
+    "image": "",
+    "isNew": true
   },
   {
     "id": 4,
@@ -33,7 +36,8 @@
     "category": "Манга",
     "universe": "Anime",
     "description": "Манга Chainsaw Man",
-    "image": ""
+    "image": "",
+    "isNew": false
   },
   {
     "id": 5,
@@ -42,7 +46,8 @@
     "category": "Фигурки",
     "universe": "Star Wars",
     "description": "Фигурка Darth Vader",
-    "image": ""
+    "image": "",
+    "isNew": true
   },
   {
     "id": 6,
@@ -51,7 +56,8 @@
     "category": "Комиксы",
     "universe": "Marvel",
     "description": "Комикс Deadpool",
-    "image": ""
+    "image": "",
+    "isNew": false
   },
   {
     "id": 7,
@@ -60,7 +66,8 @@
     "category": "Игры",
     "universe": "Games",
     "description": "Игра FAITH: The Unholy Trinity",
-    "image": ""
+    "image": "",
+    "isNew": false
   },
   {
     "id": 8,
@@ -69,7 +76,8 @@
     "category": "Мерч",
     "universe": "Games",
     "description": "Постер по игре FAITH",
-    "image": ""
+    "image": "",
+    "isNew": false
   },
   {
     "id": 9,
@@ -78,6 +86,17 @@
     "category": "Фигурки",
     "universe": "Games",
     "description": "Фигурка персонажа из FAITH",
-    "image": ""
+    "image": "",
+    "isNew": false
+  },
+  {
+    "id": 10,
+    "title": "12",
+    "price": 12,
+    "category": "Фигурки",
+    "universe": "Marvel",
+    "description": "12",
+    "image": "",
+    "isNew": true
   }
 ]
