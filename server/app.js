@@ -2,55 +2,72 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const bcrypt = require("bcryptjs");
 
 const app = express();
 const PORT = 3001;
 
 const USERS_FILE = path.join(__dirname, "users.json");
-
 const PRODUCTS_FILE = path.join(__dirname, "products.json");
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-function readUsers() {
-  if (!fs.existsSync(USERS_FILE)) {
-    fs.writeFileSync(USERS_FILE, "[]", "utf-8");
+// ========== РАБОТА С ФАЙЛАМИ ==========
+
+function readJsonFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, "[]", "utf-8");
   }
 
-  const data = fs.readFileSync(USERS_FILE, "utf-8");
+  const data = fs.readFileSync(filePath, "utf-8");
+
+  if (!data.trim()) {
+    return [];
+  }
+
   return JSON.parse(data);
+}
+
+function saveJsonFile(filePath, data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+}
+
+function readUsers() {
+  return readJsonFile(USERS_FILE);
 }
 
 function saveUsers(users) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
+  saveJsonFile(USERS_FILE, users);
 }
 
 function readProducts() {
-  if (!fs.existsSync(PRODUCTS_FILE)) {
-    fs.writeFileSync(PRODUCTS_FILE, "[]", "utf-8");
-  }
-
-  const data = fs.readFileSync(PRODUCTS_FILE, "utf-8");
-  return JSON.parse(data);
+  return readJsonFile(PRODUCTS_FILE);
 }
 
 function saveProducts(products) {
-  fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), "utf-8");
+  saveJsonFile(PRODUCTS_FILE, products);
 }
 
 function generateNickname(login, id) {
   return login + "_" + id;
 }
 
+// ========== ТЕСТОВЫЙ МАРШРУТ ==========
+
 app.get("/", function (request, response) {
-  response.send("Сервер работает");
+  response.send("Сервер работает ✅");
 });
 
+// ========== ПОЛЬЗОВАТЕЛИ ==========
+
 app.post("/api/register", function (request, response) {
+  console.log("📝 Запрос на регистрацию:", request.body);
+
   const { login, password, email } = request.body;
 
   if (!login || !password || !email) {
+    console.log("❌ Не все поля заполнены");
     return response.status(400).json({
       success: false,
       message: "Введите логин, почту и пароль",
@@ -58,6 +75,7 @@ app.post("/api/register", function (request, response) {
   }
 
   if (login.length < 3) {
+    console.log("❌ Логин слишком короткий");
     return response.status(400).json({
       success: false,
       message: "Логин должен быть не короче 3 символов",
@@ -65,6 +83,7 @@ app.post("/api/register", function (request, response) {
   }
 
   if (password.length < 4) {
+    console.log("❌ Пароль слишком короткий");
     return response.status(400).json({
       success: false,
       message: "Пароль должен быть не короче 4 символов",
@@ -74,45 +93,47 @@ app.post("/api/register", function (request, response) {
   const users = readUsers();
 
   const existingUser = users.find(function (user) {
-  return user.login === login;
-});
-
-if (existingUser) {
-  return response.status(409).json({
-    success: false,
-    message: "Пользователь с таким логином уже существует",
+    return user.login === login;
   });
-}
 
-if (email) {
+  if (existingUser) {
+    console.log("❌ Логин уже занят:", login);
+    return response.status(409).json({
+      success: false,
+      message: "Пользователь с таким логином уже существует",
+    });
+  }
+
   const existingEmail = users.find(function (user) {
     return user.email === email;
   });
 
   if (existingEmail) {
+    console.log("❌ Почта уже занята:", email);
     return response.status(409).json({
       success: false,
       message: "Пользователь с такой почтой уже существует",
     });
   }
-}
 
-  const newId = users.length > 0 ? Math.max(...users.map((user) => user.id)) + 1 : 1;
+  const newId =
+    users.length > 0 ? Math.max(...users.map((user) => user.id)) + 1 : 1;
 
   const hashedPassword = bcrypt.hashSync(password, 10);
 
-const newUser = {
-  id: newId,
-  login,
-  password: hashedPassword,
-  email: email || "",
-  nickname: generateNickname(login, newId),
-  avatar: "",
-  registeredAt: new Date().toISOString(),
-};
+  const newUser = {
+    id: newId,
+    login: login,
+    password: hashedPassword,
+    email: email,
+    nickname: generateNickname(login, newId),
+    avatar: "",
+    registeredAt: new Date().toISOString(),
+  };
 
   users.push(newUser);
   saveUsers(users);
+  console.log("✅ Пользователь создан:", newUser.login);
 
   return response.json({
     success: true,
@@ -121,7 +142,7 @@ const newUser = {
       id: newUser.id,
       login: newUser.login,
       email: newUser.email,
-      nickname: newUser.nickname || newUser.login,
+      nickname: newUser.nickname,
       avatar: newUser.avatar,
       registeredAt: newUser.registeredAt,
     },
@@ -129,36 +150,43 @@ const newUser = {
 });
 
 app.post("/api/login", function (request, response) {
+  console.log("🔑 Запрос на вход:", request.body);
+
   const { login, password } = request.body;
 
   if (!login || !password) {
+    console.log("❌ Не все поля заполнены");
     return response.status(400).json({
       success: false,
-      message: "Введите логин и пароль",
+      message: "Введите логин или почту и пароль",
     });
   }
 
   const users = readUsers();
 
   const user = users.find(function (item) {
-  return item.login === login || item.email === login;
-});
-
-if (!user) {
-  return response.status(401).json({
-    success: false,
-    message: "Неверный логин, почта или пароль",
+    return item.login === login || item.email === login;
   });
-}
 
-const passwordIsCorrect = bcrypt.compareSync(password, user.password);
+  if (!user) {
+    console.log("❌ Пользователь не найден:", login);
+    return response.status(401).json({
+      success: false,
+      message: "Неверный логин, почта или пароль",
+    });
+  }
 
-if (!passwordIsCorrect) {
-  return response.status(401).json({
-    success: false,
-    message: "Неверный логин, почта или пароль",
-  });
-}
+  const passwordIsCorrect = bcrypt.compareSync(password, user.password);
+
+  if (!passwordIsCorrect) {
+    console.log("❌ Неверный пароль для пользователя:", user.login);
+    return response.status(401).json({
+      success: false,
+      message: "Неверный логин, почта или пароль",
+    });
+  }
+
+  console.log("✅ Вход выполнен для:", user.login);
 
   return response.json({
     success: true,
@@ -220,17 +248,19 @@ app.put("/api/profile/:id", function (request, response) {
   });
 });
 
+// ========== ТОВАРЫ ==========
+
 app.get("/api/products", function (request, response) {
   const products = readProducts();
 
-  response.json({
+  return response.json({
     success: true,
     products: products,
   });
 });
 
 app.post("/api/products", function (request, response) {
-  const { title, price, category, universe, description, image } = request.body;
+  const { title, price, category, universe, description, image, isNew } = request.body;
 
   if (!title || !price || !category || !universe) {
     return response.status(400).json({
@@ -254,12 +284,13 @@ app.post("/api/products", function (request, response) {
     universe: universe,
     description: description || "",
     image: image || "",
+    isNew: isNew || false,
   };
 
   products.push(newProduct);
   saveProducts(products);
 
-  response.json({
+  return response.json({
     success: true,
     message: "Товар добавлен",
     product: newProduct,
@@ -268,7 +299,7 @@ app.post("/api/products", function (request, response) {
 
 app.put("/api/products/:id", function (request, response) {
   const productId = Number(request.params.id);
-  const { title, price, category, universe, description, image } = request.body;
+  const { title, price, category, universe, description, image, isNew } = request.body;
 
   const products = readProducts();
 
@@ -289,10 +320,11 @@ app.put("/api/products/:id", function (request, response) {
   if (universe !== undefined) product.universe = universe;
   if (description !== undefined) product.description = description;
   if (image !== undefined) product.image = image;
+  if (isNew !== undefined) product.isNew = isNew;
 
   saveProducts(products);
 
-  response.json({
+  return response.json({
     success: true,
     message: "Товар обновлён",
     product: product,
@@ -317,12 +349,17 @@ app.delete("/api/products/:id", function (request, response) {
 
   saveProducts(filteredProducts);
 
-  response.json({
+  return response.json({
     success: true,
     message: "Товар удалён",
   });
 });
 
+// ========== ЗАПУСК СЕРВЕРА ==========
+
 app.listen(PORT, function () {
-  console.log("Сервер запущен: http://localhost:" + PORT);
+  console.log("🚀 Сервер запущен на порту " + PORT);
+  console.log("🔗 Проверка сервера: http://localhost:" + PORT);
+  console.log("📦 Товары: http://localhost:" + PORT + "/api/products");
+  console.log("👥 Пользователи: " + USERS_FILE);
 });
