@@ -126,7 +126,10 @@ function Header({ setPage, currentUser }) {
   );
 }
 
-function HomePage() {
+function HomePage({
+  setPage,
+  setSelectedCategoryFromHome
+}) {
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [slide, setSlide] = useState(0);
 
@@ -146,6 +149,12 @@ function HomePage() {
     });
   }
 
+  function openCategory(category) {
+  setSelectedCategoryFromHome(category);
+  setCatalogOpen(false);
+  setPage("products");
+}
+
   return (
     <main className="home">
       <section className="products-section mario-bg">
@@ -161,12 +170,21 @@ function HomePage() {
             onMouseLeave={() => setCatalogOpen(false)}
           >
             <h3>Каталог</h3>
-            <p>Заглушка бокового каталога.</p>
-            <button>Фигурки</button>
-            <button>Комиксы</button>
-            <button>Манга</button>
-            <button>Игры</button>
-            <button>Мерч</button>
+           <button onClick={() => openCategory("Фигурки")}>
+  Фигурки
+</button>
+
+<button onClick={() => openCategory("Комиксы")}>
+  Комиксы
+</button>
+
+<button onClick={() => openCategory("Манга")}>
+  Манга
+</button>
+
+<button onClick={() => openCategory("Игры")}>
+  Игры
+</button>
           </aside>
         )}
 
@@ -675,6 +693,9 @@ function ProductsPage({
   addToCart,
   selectedUniverseFromPage,
   setSelectedUniverseFromPage,
+
+  selectedCategoryFromHome,
+  setSelectedCategoryFromHome,
 }) {
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -686,6 +707,16 @@ function ProductsPage({
     }
   }, [selectedUniverseFromPage, setSelectedUniverseFromPage]);
   const [sortType, setSortType] = useState("default");
+
+  useEffect(() => {
+  if (selectedCategoryFromHome) {
+    setSelectedCategories([selectedCategoryFromHome]);
+    setSelectedCategoryFromHome("");
+  }
+}, [
+  selectedCategoryFromHome,
+  setSelectedCategoryFromHome,
+]);
 
   const priceFilters = [
     { label: "до 1000 ₽", value: "low" },
@@ -1821,8 +1852,10 @@ function CasinoPage({ currentUser }) {
 }
 
 function App() {
+  
   const [page, setPage] = useState("home");
   const [selectedUniverseFromPage, setSelectedUniverseFromPage] = useState("");
+  const [selectedCategoryFromHome,setSelectedCategoryFromHome] = useState("");
   const [cart, setCart] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -1876,21 +1909,30 @@ function App() {
     <div className="app">
       <Header setPage={setPage} currentUser={currentUser} />
 
-      {page === "home" && <HomePage />}
+      {page === "home" && (
+  <HomePage
+    setPage={setPage}
+    setSelectedCategoryFromHome={setSelectedCategoryFromHome}
+  />
+)}
 
       {page === "casino" && <CasinoPage currentUser={currentUser} />}
 
       {page === "products" && (
-        <ProductsPage
-          currentUser={currentUser}
-          favorites={favorites}
-          toggleFavorite={toggleFavorite}
-          setPage={setPage}
-          addToCart={addToCart}
-          selectedUniverseFromPage={selectedUniverseFromPage}
-          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
-        />
-      )}
+      <ProductsPage
+        currentUser={currentUser}
+        favorites={favorites}
+        toggleFavorite={toggleFavorite}
+        setPage={setPage}
+        addToCart={addToCart}
+
+        selectedUniverseFromPage={selectedUniverseFromPage}
+        setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+
+        selectedCategoryFromHome={selectedCategoryFromHome}
+        setSelectedCategoryFromHome={setSelectedCategoryFromHome}
+      />
+    )}
 
       {page === "universes" && (
         <UniversesPage
