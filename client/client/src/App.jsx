@@ -88,7 +88,7 @@ const allProducts = [
 function Header({ setPage, currentUser }) {
   return (
     <header className="site-header">
-      <button className="logo" onClick={() => setPage("home")}>
+      <button className="logo" onClick={() => setPage("casino")}>
         ?
       </button>
 
@@ -1027,7 +1027,7 @@ function CartPage({
 
       return {
         ...product,
-        
+        quantity: cartItem.quantity,
       };
     
     })
@@ -1037,18 +1037,36 @@ function CartPage({
     return sum + product.price * product.quantity;
   }, 0);
 
-  const discount = appliedPromo === "FunUniverse" ? subtotal * 0.1 : 0;
+  const promoDiscounts = {
+    RETRO5: 0.05,
+    RETRO10: 0.1,
+    RETRO15: 0.15,
+  };
+
+const discount = appliedPromo
+  ? subtotal * promoDiscounts[appliedPromo]
+  : 0;
   const total = subtotal - discount;
 
   function applyPromo() {
-    if (promoCode.trim() === "FunUniverse") {
-      setAppliedPromo("FunUniverse");
-      setPromoMessage("Промокод применён: скидка 10%");
-    } else {
-      setAppliedPromo("");
-      setPromoMessage("Такого промокода нет");
-    }
+  const normalizedPromo = promoCode.trim().toUpperCase();
+
+  const promoDiscounts = {
+    RETRO5: 0.05,
+    RETRO10: 0.1,
+    RETRO15: 0.15,
+  };
+
+  if (promoDiscounts[normalizedPromo]) {
+    setAppliedPromo(normalizedPromo);
+    setPromoMessage(
+      `Промокод применён: скидка ${promoDiscounts[normalizedPromo] * 100}%`
+    );
+  } else {
+    setAppliedPromo("");
+    setPromoMessage("Такого промокода нет");
   }
+}
 
   if (!currentUser) {
     return (
@@ -1599,119 +1617,326 @@ async function saveProfile() {
   );
 }
 
+function CasinoPage({ currentUser }) {
+  const symbols = ["🍒", "🍋", "🍊", "🍇", "⭐", "💎"];
+
+  const prizes = [
+    { discount: 5, code: "RETRO5", weight: 50 },
+    { discount: 10, code: "RETRO10", weight: 30 },
+    { discount: 15, code: "RETRO15", weight: 20 },
+  ];
+
+  const maxAttemptsPerDay = 3;
+  const today = new Date().toISOString().slice(0, 10);
+  const storageKey = `casino-attempts-${currentUser?.id || "guest"}`;
+
+  function getSavedAttempts() {
+    const saved = localStorage.getItem(storageKey);
+
+    if (!saved) {
+      return { date: today, used: 0 };
+    }
+
+    const data = JSON.parse(saved);
+
+    if (data.date !== today) {
+      return { date: today, used: 0 };
+    }
+
+    return data;
+  }
+
+  const savedAttempts = getSavedAttempts();
+
+  const [drums, setDrums] = useState(["⭐", "⭐", "⭐"]);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [usedAttempts, setUsedAttempts] = useState(savedAttempts.used);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentPrize, setCurrentPrize] = useState(null);
+  const [copyMessage, setCopyMessage] = useState("");
+
+  const attemptsLeft = maxAttemptsPerDay - usedAttempts;
+
+  function saveAttempts(newUsedAttempts) {
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        date: today,
+        used: newUsedAttempts,
+      })
+    );
+  }
+
+  function getRandomSymbol() {
+    return symbols[Math.floor(Math.random() * symbols.length)];
+  }
+
+  function choosePrize() {
+    const totalWeight = prizes.reduce((sum, prize) => sum + prize.weight, 0);
+    let random = Math.random() * totalWeight;
+
+    for (const prize of prizes) {
+      random -= prize.weight;
+
+      if (random <= 0) {
+        return prize;
+      }
+    }
+
+    return prizes[0];
+  }
+
+  function makeLoseResult() {
+    const first = getRandomSymbol();
+    let second = getRandomSymbol();
+
+    while (second === first) {
+      second = getRandomSymbol();
+    }
+
+    const third = Math.random() < 0.5 ? first : second;
+
+    return [first, second, third];
+  }
+
+  function spin() {
+    if (isSpinning) return;
+
+    if (attemptsLeft <= 0) {
+      alert("Попытки на сегодня закончились. Возвращайся завтра!");
+      return;
+    }
+
+    const newUsedAttempts = usedAttempts + 1;
+    setUsedAttempts(newUsedAttempts);
+    saveAttempts(newUsedAttempts);
+
+    setIsSpinning(true);
+    setCopyMessage("");
+    setModalOpen(false);
+
+    const willWin = Math.random() < 0.25;
+    const prize = willWin ? choosePrize() : null;
+    const winSymbol = willWin ? getRandomSymbol() : null;
+    const finalResult = willWin
+      ? [winSymbol, winSymbol, winSymbol]
+      : makeLoseResult();
+
+    let counter = 0;
+
+    const interval = setInterval(() => {
+      setDrums([getRandomSymbol(), getRandomSymbol(), getRandomSymbol()]);
+      counter += 1;
+
+      if (counter >= 18) {
+        clearInterval(interval);
+        setDrums(finalResult);
+        setIsSpinning(false);
+
+        if (willWin) {
+          setCurrentPrize(prize);
+
+          setTimeout(() => {
+            setModalOpen(true);
+          }, 450);
+        }
+      }
+    }, 90);
+  }
+
+  async function copyCode() {
+    if (!currentPrize) return;
+
+    try {
+      await navigator.clipboard.writeText(currentPrize.code);
+      setCopyMessage("✓ Код скопирован!");
+    } catch {
+      setCopyMessage("Код: " + currentPrize.code);
+    }
+  }
+
+  return (
+    <main className="casino-page">
+      <section className="casino-container">
+        <h1 className="casino-title">🎰 SPIN TO WIN 🎰</h1>
+
+        <p className="casino-subtitle">
+          Собери три одинаковых символа и получи промокод!
+        </p>
+
+        <div className="casino-machine">
+          <div className="casino-drums">
+            {drums.map((symbol, index) => (
+              <div className="casino-drum" key={index}>
+                <div
+                  className={
+                    isSpinning
+                      ? "casino-drum-inner spinning"
+                      : "casino-drum-inner"
+                  }
+                >
+                  {symbol}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            className="casino-spin-btn"
+            onClick={spin}
+            disabled={isSpinning || attemptsLeft <= 0}
+          >
+            {isSpinning ? "SPINNING..." : "SPIN!"}
+          </button>
+
+          <div className="casino-attempts">
+            Осталось попыток: <b>{attemptsLeft}</b> / {maxAttemptsPerDay}
+          </div>
+        </div>
+      </section>
+
+      {modalOpen && currentPrize && (
+        <div className="casino-modal" onClick={() => setModalOpen(false)}>
+          <div
+            className="casino-modal-content"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2>🎉 YOU WIN! 🎉</h2>
+
+            <p>Ты выиграла скидку {currentPrize.discount}%!</p>
+
+            <div className="casino-promo-code">{currentPrize.code}</div>
+
+            <div className="casino-modal-buttons">
+              <button onClick={copyCode}>📋 COPY CODE</button>
+              <button onClick={() => setModalOpen(false)}>✕ CLOSE</button>
+            </div>
+
+            {copyMessage && <p className="casino-copy-message">{copyMessage}</p>}
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
 function App() {
   const [page, setPage] = useState("home");
   const [selectedUniverseFromPage, setSelectedUniverseFromPage] = useState("");
   const [cart, setCart] = useState([]);
-const [currentUser, setCurrentUser] = useState(null);
-const [favorites, setFavorites] = useState([]);
-function toggleFavorite(productId) {
-  if (favorites.includes(productId)) {
-    setFavorites(favorites.filter((id) => id !== productId));
-  } else {
-    setFavorites([...favorites, productId]);
-  }
-}
-function addToCart(productId) {
-  setCart((currentCart) => {
-    const existingProduct = currentCart.find((item) => item.id === productId);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [favorites, setFavorites] = useState([]);
 
-    if (existingProduct) {
-      return currentCart.map((item) =>
-        item.id === productId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
+  function toggleFavorite(productId) {
+    if (favorites.includes(productId)) {
+      setFavorites(favorites.filter((id) => id !== productId));
+    } else {
+      setFavorites([...favorites, productId]);
+    }
+  }
+
+  function addToCart(productId) {
+    setCart((currentCart) => {
+      const existingProduct = currentCart.find((item) => item.id === productId);
+
+      if (existingProduct) {
+        return currentCart.map((item) =>
+          item.id === productId
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+
+      return [...currentCart, { id: productId, quantity: 1 }];
+    });
+  }
+
+  function changeCartQuantity(productId, quantity) {
+    if (quantity <= 0) {
+      setCart((currentCart) =>
+        currentCart.filter((item) => item.id !== productId)
       );
+      return;
     }
 
-    return [...currentCart, { id: productId, quantity: 1 }];
-  });
-}
+    setCart((currentCart) =>
+      currentCart.map((item) =>
+        item.id === productId ? { ...item, quantity } : item
+      )
+    );
+  }
 
-function changeCartQuantity(productId, quantity) {
-  if (quantity <= 0) {
+  function removeFromCart(productId) {
     setCart((currentCart) =>
       currentCart.filter((item) => item.id !== productId)
     );
-    return;
   }
 
-  setCart((currentCart) =>
-    currentCart.map((item) =>
-      item.id === productId ? { ...item, quantity: quantity } : item
-    )
+  return (
+    <div className="app">
+      <Header setPage={setPage} currentUser={currentUser} />
+
+      {page === "home" && <HomePage />}
+
+      {page === "casino" && <CasinoPage currentUser={currentUser} />}
+
+      {page === "products" && (
+        <ProductsPage
+          currentUser={currentUser}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
+          setPage={setPage}
+          addToCart={addToCart}
+          selectedUniverseFromPage={selectedUniverseFromPage}
+          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+        />
+      )}
+
+      {page === "universes" && (
+        <UniversesPage
+          setPage={setPage}
+          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+        />
+      )}
+
+      {page === "about" && <AboutPage />}
+
+      {page === "favorites" && (
+        <FavoritesPage
+          currentUser={currentUser}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
+          setPage={setPage}
+        />
+      )}
+
+      {page === "cart" && (
+        <CartPage
+          currentUser={currentUser}
+          cart={cart}
+          changeCartQuantity={changeCartQuantity}
+          removeFromCart={removeFromCart}
+          setPage={setPage}
+        />
+      )}
+
+      {page === "login" && (
+        <LoginPage currentUser={currentUser} setCurrentUser={setCurrentUser} />
+      )}
+
+      {page === "profile" && (
+        <ProfilePage
+          currentUser={currentUser}
+          setCurrentUser={setCurrentUser}
+          favorites={favorites}
+          cart={cart}
+          setPage={setPage}
+        />
+      )}
+
+      <Footer setPage={setPage} />
+    </div>
   );
-}
-
-function removeFromCart(productId) {
-  setCart((currentCart) =>
-    currentCart.filter((item) => item.id !== productId)
-  );
-}
-  
-return (
-  <div className="app">
-    <Header setPage={setPage} currentUser={currentUser} />
-
-    {page === "home" && <HomePage />}
-
-    {page === "products" && (
-      <ProductsPage
-        currentUser={currentUser}
-        favorites={favorites}
-        toggleFavorite={toggleFavorite}
-        setPage={setPage}
-        addToCart={addToCart}
-        selectedUniverseFromPage={selectedUniverseFromPage}
-        setSelectedUniverseFromPage={setSelectedUniverseFromPage}
-      />
-    )}
-
-    {page === "universes" && (
-      <UniversesPage
-        setPage={setPage}
-        setSelectedUniverseFromPage={setSelectedUniverseFromPage}
-      />
-    )}
-
-    {page === "about" && <AboutPage />}
-
-    {page === "favorites" && (
-      <FavoritesPage
-        currentUser={currentUser}
-        favorites={favorites}
-        toggleFavorite={toggleFavorite}
-        setPage={setPage}
-      />
-    )}
-
-    {page === "cart" && (
-      <CartPage
-        currentUser={currentUser}
-        cart={cart}
-        changeCartQuantity={changeCartQuantity}
-        removeFromCart={removeFromCart}
-        setPage={setPage}
-      />
-    )}
-
-    {page === "login" && (
-      <LoginPage currentUser={currentUser} setCurrentUser={setCurrentUser} />
-    )}
-
-    {page === "profile" && (
-      <ProfilePage
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        favorites={favorites}
-        cart={cart}
-        setPage={setPage}
-      />
-    )}
-
-    <Footer setPage={setPage} />
-  </div>
-);
 }
 
 export default App;
