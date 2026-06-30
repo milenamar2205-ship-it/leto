@@ -2357,3 +2357,81 @@ button {
   background: #ff3b3b;
   color: #111111;
 }
+.admin-page {
+  min-height: calc(100vh - 72px);
+  padding: 46px 6vw 100px;
+  background: #3457e8;
+  color: white;
+}
+
+.admin-page h1 {
+  width: fit-content;
+  margin: 0 0 36px;
+  padding-bottom: 14px;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(24px, 4vw, 42px);
+  border-bottom: 8px solid #14ff42;
+  text-shadow: 0 0 12px #8b2cff;
+}
+
+.admin-form {
+  max-width: 720px;
+  display: grid;
+  gap: 16px;
+  padding: 28px;
+  border: 5px solid #111;
+  border-radius: 22px;
+  background: #2d2d2d;
+  box-shadow: 8px 8px 0 #111;
+}
+
+.admin-form input,
+.admin-form select,
+.admin-form textarea {
+  padding: 14px;
+  border: 4px solid #111;
+  border-radius: 12px;
+  background: #eeeeee;
+  color: #111;
+  font-size: 16px;
+}
+
+.admin-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.admin-form button,
+.admin-product-card button {
+  padding: 14px 18px;
+  border: 4px solid #14ff42;
+  border-radius: 14px;
+  background: #842bff;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.admin-message {
+  margin: 24px 0;
+  font-family: "Press Start 2P", monospace;
+}
+
+.admin-products-list {
+  margin-top: 34px;
+  display: grid;
+  gap: 16px;
+}
+
+.admin-product-card {
+  display: grid;
+  grid-template-columns: 1fr 140px 220px 140px;
+  gap: 18px;
+  align-items: center;
+  padding: 18px;
+  border: 4px solid #111;
+  border-radius: 16px;
+  background: #2d2d2d;
+  box-shadow: 6px 6px 0 #111;
+}
