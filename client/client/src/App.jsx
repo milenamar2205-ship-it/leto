@@ -10,81 +10,6 @@ import animeLogo from "./assets/anime.png";
 import gamesLogo from "./assets/games.png";
 import aboutMascot from "./assets/logo3.png";
 
-const products = [
-  { title: "Фигурка героя", price: "2 499 ₽" },
-  { title: "Комикс #01", price: "899 ₽" },
-  { title: "Mystery box", price: "1 299 ₽" },
-  { title: "Аниме-фигурка", price: "3 199 ₽" },
-  { title: "Коллекционный сет", price: "4 999 ₽" },
-  { title: "Редкий выпуск", price: "1 599 ₽" },
-  { title: "Гик-мерч", price: "999 ₽" },
-];
-const allProducts = [
-  {
-    id: 1,
-    title: "Фигурка Spider-Man",
-    price: 2890,
-    category: "Фигурки",
-    universe: "Marvel",
-  },
-  {
-    id: 2,
-    title: "Комикс Batman #1",
-    price: 990,
-    category: "Комиксы",
-    universe: "DC",
-  },
-  {
-    id: 3,
-    title: "Фигурка Levi Ackerman",
-    price: 5190,
-    category: "Фигурки",
-    universe: "Anime",
-  },
-  {
-    id: 4,
-    title: "Манга Chainsaw Man",
-    price: 750,
-    category: "Манга",
-    universe: "Anime",
-  },
-  {
-    id: 5,
-    title: "Фигурка Darth Vader",
-    price: 4490,
-    category: "Фигурки",
-    universe: "Star Wars",
-  },
-  {
-    id: 6,
-    title: "Комикс Deadpool",
-    price: 1290,
-    category: "Комиксы",
-    universe: "Marvel",
-  },
-  {
-  id: 7,
-  title: "FAITH: The Unholy Trinity",
-  price: 1490,
-  category: "Игры",
-  universe: "Games",
-},
-{
-  id: 8,
-  title: "Постер FAITH",
-  price: 690,
-  category: "Мерч",
-  universe: "Games",
-},
-{
-  id: 9,
-  title: "Фигурка священника FAITH",
-  price: 2590,
-  category: "Фигурки",
-  universe: "Games",
-},
-];
-
 function Header({ setPage, currentUser }) {
   return (
     <header className="site-header">
@@ -129,35 +54,92 @@ function Header({ setPage, currentUser }) {
 
 function HomePage({
   setPage,
-  setSelectedCategoryFromHome
+  setSelectedCategoryFromHome,
+  addToCart,
+  allProducts,
+  currentUser,
+  favorites,
+  toggleFavorite,
 }) {
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [slide, setSlide] = useState(0);
+  const [notification, setNotification] = useState(null);
 
-  const visibleProducts = products.slice(slide, slide + 5);
+  // Фильтруем только новинки
+  const newProducts = allProducts.filter(product => product.isNew === true);
+  
+  // Если новинок нет, показываем пустой массив
+  const visibleProducts = newProducts.length > 0 ? newProducts.slice(slide, slide + 5) : [];
 
   function nextSlide() {
+    if (newProducts.length === 0) return;
     setSlide((current) => {
-      if (current + 5 >= products.length) return 0;
+      if (current + 5 >= newProducts.length) return 0;
       return current + 1;
     });
   }
 
   function prevSlide() {
+    if (newProducts.length === 0) return;
     setSlide((current) => {
-      if (current === 0) return Math.max(products.length - 5, 0);
+      if (current === 0) return Math.max(newProducts.length - 5, 0);
       return current - 1;
     });
   }
 
   function openCategory(category) {
-  setSelectedCategoryFromHome(category);
-  setCatalogOpen(false);
-  setPage("products");
-}
+    setSelectedCategoryFromHome(category);
+    setCatalogOpen(false);
+    setPage("products");
+  }
+
+  function showNotification(message, type = "success") {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 2500);
+  }
+
+  function handleAddToCart(productId) {
+    if (!currentUser) {
+      showNotification("⚠️ Для добавления в корзину войдите в аккаунт!", "error");
+      setTimeout(() => {
+        setPage("login");
+      }, 1500);
+      return;
+    }
+    
+    addToCart(productId);
+    const product = allProducts.find(p => p.id === productId);
+    showNotification(`✅ "${product?.title || "Товар"}" добавлен в корзину!`, "success");
+  }
+
+  function handleToggleFavorite(productId) {
+    if (!currentUser) {
+      showNotification("⚠️ Для добавления в избранное войдите в аккаунт!", "error");
+      setTimeout(() => {
+        setPage("login");
+      }, 1500);
+      return;
+    }
+    
+    const isFavorite = favorites.includes(productId);
+    toggleFavorite(productId);
+    const product = allProducts.find(p => p.id === productId);
+    showNotification(
+      isFavorite ? `❤️ "${product?.title || "Товар"}" удалён из избранного` : `❤️ "${product?.title || "Товар"}" добавлен в избранное!`,
+      "success"
+    );
+  }
 
   return (
     <main className="home">
+      {notification && (
+        <div className={`notification ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+
       <section className="products-section mario-bg">
         <div className="top-row">
           <div className="small-photo-placeholder">
@@ -171,55 +153,77 @@ function HomePage({
             onMouseLeave={() => setCatalogOpen(false)}
           >
             <h3>Каталог</h3>
-           <button onClick={() => openCategory("Фигурки")}>
-  Фигурки
-</button>
-
-<button onClick={() => openCategory("Комиксы")}>
-  Комиксы
-</button>
-
-<button onClick={() => openCategory("Манга")}>
-  Манга
-</button>
-
-<button onClick={() => openCategory("Игры")}>
-  Игры
-</button>
+            <button onClick={() => openCategory("Фигурки")}>Фигурки</button>
+            <button onClick={() => openCategory("Комиксы")}>Комиксы</button>
+            <button onClick={() => openCategory("Манга")}>Манга</button>
+            <button onClick={() => openCategory("Игры")}>Игры</button>
           </aside>
         )}
 
         <div className="section-heading-row">
-  <h2 className="section-title">Новинки</h2>
-
-  <button
-    className="catalog-btn"
-    onMouseEnter={() => setCatalogOpen(true)}
-    onClick={() => setCatalogOpen((value) => !value)}
-  >
-    Каталог
-  </button>
-</div>
+          <h2 className="section-title">Новинки</h2>
+          <button
+            className="catalog-btn"
+            onMouseEnter={() => setCatalogOpen(true)}
+            onClick={() => setCatalogOpen((value) => !value)}
+          >
+            Каталог
+          </button>
+        </div>
 
         <div className="slider">
-          <button className="slider-arrow left" onClick={prevSlide}>
-            ←
-          </button>
+          {newProducts.length > 0 ? (
+            <>
+              <button className="slider-arrow left" onClick={prevSlide}>
+                ←
+              </button>
 
-          <div className="product-list">
-            {visibleProducts.map((product, index) => (
-              <article className="product-card" key={`${product.title}-${index}`}>
-                <div className="product-image">IMG</div>
-                <p className="product-desc">{product.title}</p>
-                <p className="product-price">{product.price}</p>
-                <button className="cart-btn">🛒</button>
-              </article>
-            ))}
-          </div>
+              <div className="product-list">
+                {visibleProducts.map((product, index) => (
+                  <article className="product-card" key={`${product.id}-${index}`}>
+                    <button
+                      className={`favorite-btn ${favorites.includes(product.id) ? "active" : ""}`}
+                      onClick={() => handleToggleFavorite(product.id)}
+                      style={{
+                        position: "absolute",
+                        top: "4px",
+                        right: "4px",
+                        zIndex: "3",
+                        border: "none",
+                        background: "transparent",
+                        color: favorites.includes(product.id) ? "#ff3b8d" : "#ffffff",
+                        fontSize: "24px",
+                        cursor: "pointer",
+                        textShadow: favorites.includes(product.id) 
+                          ? "2px 2px 0 #000, 0 0 12px #ff3b8d" 
+                          : "0 0 8px #8b2cff",
+                        width: "36px",
+                        height: "36px",
+                        display: "grid",
+                        placeItems: "center"
+                      }}
+                    >
+                      {favorites.includes(product.id) ? "♥" : "♡"}
+                    </button>
 
-          <button className="slider-arrow right" onClick={nextSlide}>
-            →
-          </button>
+                    <div className="product-image">IMG</div>
+                    <p className="product-desc">{product.title}</p>
+                    <p className="product-price">{product.price.toLocaleString("ru-RU")} ₽</p>
+                    <button 
+                      className="cart-btn" 
+                      onClick={() => handleAddToCart(product.id)}
+                    >
+                      🛒
+                    </button>
+                  </article>
+                ))}
+              </div>
+
+              <button className="slider-arrow right" onClick={nextSlide}>
+                →
+              </button>
+            </>
+          ) : null}
         </div>
 
         <div className="pixel-bg-placeholder"></div>
@@ -239,7 +243,6 @@ function HomePage({
           радость :)
         </p>
       </section>
-
     </main>
   );
 }
@@ -551,7 +554,6 @@ function LoginPage({ currentUser, setCurrentUser }) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
-  
 
   async function sendAuthRequest(event) {
     event.preventDefault();
@@ -586,6 +588,8 @@ function LoginPage({ currentUser, setCurrentUser }) {
       if (data.success && mode === "register") {
         setMode("login");
         setPassword("");
+        setMessage("Аккаунт создан! Теперь войдите.");
+        setSuccess(true);
       }
     } catch (error) {
       setMessage("Ошибка соединения с сервером");
@@ -600,10 +604,10 @@ function LoginPage({ currentUser, setCurrentUser }) {
 
         {currentUser ? (
           <div className="profile-box">
-           <p>
-             Вы уже вошли как: <b>{currentUser.nickname || currentUser.login}</b>
-           </p>
-           <p>Выйти из аккаунта можно в личном кабинете.</p>
+            <p>
+              Вы уже вошли как: <b>{currentUser.nickname || currentUser.login}</b>
+            </p>
+            <p>Выйти из аккаунта можно в личном кабинете.</p>
           </div>
         ) : (
           <>
@@ -635,16 +639,16 @@ function LoginPage({ currentUser, setCurrentUser }) {
                 placeholder={mode === "login" ? "Логин или почта" : "Придумайте логин"}
                 value={login}
                 onChange={(event) => setLogin(event.target.value)}
-            />
-            {mode === "register" && (
-              <input
-                type="email"
-                placeholder="Почта"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
               />
-            )}
+              {mode === "register" && (
+                <input
+                  type="email"
+                  placeholder="Почта"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+              )}
 
               <input
                 type="password"
@@ -669,6 +673,7 @@ function LoginPage({ currentUser, setCurrentUser }) {
     </main>
   );
 }
+
 function StubPage({ title }) {
   return (
     <main className="stub-page">
@@ -686,7 +691,6 @@ function ProductsPage({
   addToCart,
   selectedUniverseFromPage,
   setSelectedUniverseFromPage,
-
   selectedCategoryFromHome,
   setSelectedCategoryFromHome,
   allProducts,
@@ -694,23 +698,27 @@ function ProductsPage({
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedUniverses, setSelectedUniverses] = useState([]);
-  useEffect(() => {
-    if (selectedUniverseFromPage) {
-     setSelectedUniverses([selectedUniverseFromPage]);
-     setSelectedUniverseFromPage("");
-    }
-  }, [selectedUniverseFromPage, setSelectedUniverseFromPage]);
+  const [notification, setNotification] = useState(null);
   const [sortType, setSortType] = useState("default");
 
   useEffect(() => {
-  if (selectedCategoryFromHome) {
-    setSelectedCategories([selectedCategoryFromHome]);
-    setSelectedCategoryFromHome("");
+    if (selectedUniverseFromPage) {
+      setSelectedUniverses([selectedUniverseFromPage]);
+      setSelectedUniverseFromPage("");
+    }
+  }, [selectedUniverseFromPage, setSelectedUniverseFromPage]);
+
+  useEffect(() => {
+    if (selectedCategoryFromHome) {
+      setSelectedCategories([selectedCategoryFromHome]);
+      setSelectedCategoryFromHome("");
+    }
+  }, [selectedCategoryFromHome, setSelectedCategoryFromHome]);
+
+  function showNotification(message, type = "success") {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 2500);
   }
-}, [
-  selectedCategoryFromHome,
-  setSelectedCategoryFromHome,
-]);
 
   const priceFilters = [
     { label: "до 1000 ₽", value: "low" },
@@ -741,30 +749,21 @@ function ProductsPage({
   }
 
   const filteredProducts = allProducts.filter((product) => {
-  const priceOk = checkPrice(product);
+    const priceOk = checkPrice(product);
+    const categoryOk =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(product.category);
+    const universeOk =
+      selectedUniverses.length === 0 ||
+      selectedUniverses.includes(product.universe);
+    return priceOk && categoryOk && universeOk;
+  });
 
-  const categoryOk =
-    selectedCategories.length === 0 ||
-    selectedCategories.includes(product.category);
-
-  const universeOk =
-    selectedUniverses.length === 0 ||
-    selectedUniverses.includes(product.universe);
-
-  return priceOk && categoryOk && universeOk;
-});
-
-const sortedProducts = [...filteredProducts].sort((a, b) => {
-  if (sortType === "cheap") {
-    return a.price - b.price;
-  }
-
-  if (sortType === "expensive") {
-    return b.price - a.price;
-  }
-
-  return 0;
-});
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortType === "cheap") return a.price - b.price;
+    if (sortType === "expensive") return b.price - a.price;
+    return 0;
+  });
 
   function resetFilters() {
     setSelectedPrices([]);
@@ -774,6 +773,12 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
 
   return (
     <main className="products-page">
+      {notification && (
+        <div className={`notification ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+
       <h1>Все товары</h1>
 
       <div className="products-layout">
@@ -785,7 +790,6 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
 
           <div className="filter-block">
             <h3>Цена</h3>
-
             {priceFilters.map((filter) => (
               <label className="checkbox-row" key={filter.value}>
                 <input
@@ -802,7 +806,6 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
 
           <div className="filter-block">
             <h3>Категория</h3>
-
             {categories.map((category) => (
               <label className="checkbox-row" key={category}>
                 <input
@@ -819,7 +822,6 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
 
           <div className="filter-block">
             <h3>Вселенная</h3>
-
             {universes.map((universe) => (
               <label className="checkbox-row" key={universe}>
                 <input
@@ -838,13 +840,11 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
         <section className="products-content">
           <div className="products-top">
             <p>Найдено товаров: {filteredProducts.length}</p>
-
             <select value={sortType} onChange={(event) => setSortType(event.target.value)}>
-            <option value="default">Сортировка</option>
-            <option value="cheap">Сначала дешёвые</option>
-            <option value="expensive">Сначала дорогие</option>
+              <option value="default">Сортировка</option>
+              <option value="cheap">Сначала дешёвые</option>
+              <option value="expensive">Сначала дорогие</option>
             </select>
-
           </div>
 
           <div className="products-grid">
@@ -854,23 +854,24 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
                   className={favorites.includes(product.id) ? "favorite-btn active" : "favorite-btn"}
                   onClick={() => {
                     if (!currentUser) {
-                      alert("Добавлять товары в избранное можно только после регистрации или входа");
-                      setPage("login");
+                      showNotification("⚠️ Для добавления в избранное войдите в аккаунт!", "error");
+                      setTimeout(() => setPage("login"), 1500);
                       return;
-                  }
-
-                  toggleFavorite(product.id);
-                }}
+                    }
+                    const isFavorite = favorites.includes(product.id);
+                    toggleFavorite(product.id);
+                    showNotification(
+                      isFavorite ? `❤️ "${product.title}" удалён из избранного` : `❤️ "${product.title}" добавлен в избранное!`,
+                      "success"
+                    );
+                  }}
                 >
-                {favorites.includes(product.id) ? "♥" : "♡"}
+                  {favorites.includes(product.id) ? "♥" : "♡"}
                 </button>
 
                 <div className="shop-image">IMG</div>
-
                 <p className="shop-status">В наличии</p>
-
                 <h3>{product.title}</h3>
-
                 <p className="shop-meta">
                   {product.category} / {product.universe}
                 </p>
@@ -880,15 +881,15 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
                   <button
                     onClick={() => {
                       if (!currentUser) {
-                        alert("Добавлять товары в корзину можно только после регистрации или входа");
-                        setPage("login");
+                        showNotification("⚠️ Для добавления в корзину войдите в аккаунт!", "error");
+                        setTimeout(() => setPage("login"), 1500);
                         return;
                       }
-
                       addToCart(product.id);
+                      showNotification(`✅ "${product.title}" добавлен в корзину!`, "success");
                     }}
                   >
-                    🛒 
+                    🛒
                   </button>
                 </div>
               </article>
@@ -903,12 +904,10 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
 function Footer({ setPage }) {
   function goToAbout(event) {
     event.preventDefault();
-
     setPage("home");
 
     setTimeout(() => {
       const aboutBlock = document.getElementById("about-project");
-
       if (aboutBlock) {
         aboutBlock.scrollIntoView({
           behavior: "smooth",
@@ -927,7 +926,6 @@ function Footer({ setPage }) {
       <div className="footer-info">
         <div className="footer-block">
           <h2>Соц-сети</h2>
-
           <div className="social-buttons">
             <a
               href="https://t.me/FunUniverseo3o"
@@ -937,7 +935,6 @@ function Footer({ setPage }) {
             >
               Tg
             </a>
-
             <a
               href="https://vk.com/sndk_tv?ysclid=mqy5za2b3t428340004"
               target="_blank"
@@ -946,7 +943,6 @@ function Footer({ setPage }) {
             >
               Vk
             </a>
-
             <a
               href="https://e.mail.ru/cgi-bin/sentmsg?To=milenamar@bk.ru&from=otvet"
               target="_blank"
@@ -959,11 +955,11 @@ function Footer({ setPage }) {
         </div>
 
         <div className="footer-block">
-  <h2>Контакты</h2>
-  <p>+7 900 671 0138</p>
-  <p>+7 929 306 2311</p>
-  <p>+7 996 736 1775</p>
-</div>
+          <h2>Контакты</h2>
+          <p>+7 900 671 0138</p>
+          <p>+7 929 306 2311</p>
+          <p>+7 996 736 1775</p>
+        </div>
 
         <div className="footer-block">
           <h2>Часы работы</h2>
@@ -1020,11 +1016,8 @@ function FavoritesPage({
               >
                 ♥
               </button>
-
               <div className="shop-image">IMG</div>
-
               <h3>{product.title}</h3>
-
               <div className="shop-bottom">
                 <strong>{product.price.toLocaleString("ru-RU")} ₽</strong>
                 <button>🛒</button>
@@ -1052,16 +1045,8 @@ function CartPage({
   const cartProducts = cart
     .map((cartItem) => {
       const product = allProducts.find((item) => item.id === cartItem.id);
-
-      if (!product) {
-        return null;
-      }
-
-      return {
-        ...product,
-        quantity: cartItem.quantity,
-      };
-    
+      if (!product) return null;
+      return { ...product, quantity: cartItem.quantity };
     })
     .filter(Boolean);
 
@@ -1075,36 +1060,24 @@ function CartPage({
     RETRO15: 0.15,
   };
 
-const discount = appliedPromo
-  ? subtotal * promoDiscounts[appliedPromo]
-  : 0;
+  const discount = appliedPromo ? subtotal * promoDiscounts[appliedPromo] : 0;
   const total = subtotal - discount;
 
   function applyPromo() {
-  const normalizedPromo = promoCode.trim().toUpperCase();
-
-  const promoDiscounts = {
-    RETRO5: 0.05,
-    RETRO10: 0.1,
-    RETRO15: 0.15,
-  };
-
-  if (promoDiscounts[normalizedPromo]) {
-    setAppliedPromo(normalizedPromo);
-    setPromoMessage(
-      `Промокод применён: скидка ${promoDiscounts[normalizedPromo] * 100}%`
-    );
-  } else {
-    setAppliedPromo("");
-    setPromoMessage("Такого промокода нет");
+    const normalizedPromo = promoCode.trim().toUpperCase();
+    if (promoDiscounts[normalizedPromo]) {
+      setAppliedPromo(normalizedPromo);
+      setPromoMessage(`Промокод применён: скидка ${promoDiscounts[normalizedPromo] * 100}%`);
+    } else {
+      setAppliedPromo("");
+      setPromoMessage("Такого промокода нет");
+    }
   }
-}
 
   if (!currentUser) {
     return (
       <main className="cart-page">
         <h1>Корзина</h1>
-
         <div className="empty-cart">
           <img src={cartLogo} alt="Корзина" />
           <p>ваша корзина пока пуста</p>
@@ -1118,7 +1091,6 @@ const discount = appliedPromo
     return (
       <main className="cart-page">
         <h1>Корзина</h1>
-
         <div className="empty-cart">
           <img src={cartLogo} alt="Корзина" />
           <p>ваша корзина пока пуста</p>
@@ -1131,46 +1103,24 @@ const discount = appliedPromo
   return (
     <main className="cart-page">
       <h1>Корзина</h1>
-
       <div className="cart-layout">
         <section className="cart-items">
           {cartProducts.map((product) => (
             <article className="cart-item" key={product.id}>
               <div className="cart-item-image">IMG</div>
-
               <div className="cart-item-info">
                 <h2>{product.title}</h2>
                 <p>{product.price.toLocaleString("ru-RU")} ₽ / шт</p>
               </div>
-
               <div className="quantity-control">
-                <button
-                  onClick={() =>
-                    changeCartQuantity(product.id, product.quantity - 1)
-                  }
-                >
-                  −
-                </button>
-
+                <button onClick={() => changeCartQuantity(product.id, product.quantity - 1)}>−</button>
                 <span>{product.quantity}</span>
-
-                <button
-                  onClick={() =>
-                    changeCartQuantity(product.id, product.quantity + 1)
-                  }
-                >
-                  +
-                </button>
+                <button onClick={() => changeCartQuantity(product.id, product.quantity + 1)}>+</button>
               </div>
-
               <strong className="cart-item-total">
                 {(product.price * product.quantity).toLocaleString("ru-RU")} ₽
               </strong>
-
-              <button
-                className="cart-delete"
-                onClick={() => removeFromCart(product.id)}
-              >
+              <button className="cart-delete" onClick={() => removeFromCart(product.id)}>
                 🗑
               </button>
             </article>
@@ -1179,10 +1129,8 @@ const discount = appliedPromo
 
         <aside className="cart-summary">
           <img className="cart-summary-logo" src={cartLogo} alt="FunUniverse" />
-
           <div className="promo-box">
             <h2>Промокод</h2>
-
             <div className="promo-row">
               <input
                 type="text"
@@ -1190,46 +1138,23 @@ const discount = appliedPromo
                 value={promoCode}
                 onChange={(event) => setPromoCode(event.target.value)}
               />
-
               <button onClick={applyPromo}>✓</button>
             </div>
-
             {promoMessage && <p>{promoMessage}</p>}
           </div>
-
           <div className="delivery-box">
             <h2>Бесплатная доставка</h2>
-
-            <p>
-              Заполняйте корзину товарами, и бесплатная доставка будет
-              автоматически включена!
-            </p>
-
+            <p>Заполняйте корзину товарами, и бесплатная доставка будет автоматически включена!</p>
             <ul>
-              <li>
-                При заказе от 1000 ₽: Бесплатная доставка почтой России в Москву
-              </li>
-              <li>
-                При заказе от 3000 ₽: Бесплатная доставка почтой России в ближние
-                регионы
-              </li>
-              <li>
-                При заказе от 5000 ₽: Бесплатная доставка в Магаданскую, Амурскую,
-                Иркутскую области, Хабаровский, Приморский, Забайкальский,
-                Камчатский край, Якутию, Бурятию, Еврейский АО, Чукотский АО
-              </li>
+              <li>При заказе от 1000 ₽: Бесплатная доставка почтой России в Москву</li>
+              <li>При заказе от 3000 ₽: Бесплатная доставка почтой России в ближние регионы</li>
+              <li>При заказе от 5000 ₽: Бесплатная доставка в Магаданскую, Амурскую, Иркутскую области, Хабаровский, Приморский, Забайкальский, Камчатский край, Якутию, Бурятию, Еврейский АО, Чукотский АО</li>
             </ul>
           </div>
-
           <div className="total-box">
             <p>Сумма товаров: {subtotal.toLocaleString("ru-RU")} ₽</p>
-
-            {appliedPromo && (
-              <p>Скидка: −{discount.toLocaleString("ru-RU")} ₽</p>
-            )}
-
+            {appliedPromo && <p>Скидка: −{discount.toLocaleString("ru-RU")} ₽</p>}
             <h2>Итого: {total.toLocaleString("ru-RU")} ₽</h2>
-
             <button>Оформить заказ</button>
           </div>
         </aside>
@@ -1240,31 +1165,11 @@ const discount = appliedPromo
 
 function UniversesPage({ setPage, setSelectedUniverseFromPage }) {
   const universesList = [
-    {
-      title: "Marvel",
-      value: "Marvel",
-      image: marvelLogo,
-    },
-    {
-      title: "Star Wars",
-      value: "Star Wars",
-      image: starWarsLogo,
-    },
-    {
-      title: "DC",
-      value: "DC",
-      image: dcLogo,
-    },
-    {
-      title: "Anime",
-      value: "Anime",
-      image: animeLogo,
-    },
-    {
-      title: "Games",
-      value: "Games",
-      image: gamesLogo,
-    },
+    { title: "Marvel", value: "Marvel", image: marvelLogo },
+    { title: "Star Wars", value: "Star Wars", image: starWarsLogo },
+    { title: "DC", value: "DC", image: dcLogo },
+    { title: "Anime", value: "Anime", image: animeLogo },
+    { title: "Games", value: "Games", image: gamesLogo },
   ];
 
   function openUniverse(universe) {
@@ -1275,18 +1180,10 @@ function UniversesPage({ setPage, setSelectedUniverseFromPage }) {
   return (
     <main className="universes-page">
       <h1>Выбери свою вселенную</h1>
-
-      <p className="universes-text">
-        Нажми на логотип, чтобы увидеть товары из выбранной вселенной
-      </p>
-
+      <p className="universes-text">Нажми на логотип, чтобы увидеть товары из выбранной вселенной</p>
       <div className="universes-grid">
         {universesList.map((universe) => (
-          <button
-            className="universe-card"
-            key={universe.value}
-            onClick={() => openUniverse(universe.value)}
-          >
+          <button className="universe-card" key={universe.value} onClick={() => openUniverse(universe.value)}>
             <img src={universe.image} alt={universe.title} />
             <span>{universe.title}</span>
           </button>
@@ -1324,42 +1221,12 @@ function AboutPage() {
   ];
 
   const achievements = [
-    {
-      icon: "◉",
-      title: "Первый раз",
-      text: "Впервые посетил наш сайт",
-      unlocked: true,
-    },
-    {
-      icon: "▣",
-      title: "Знаток",
-      text: "Нашёл страницу «О нас»",
-      unlocked: true,
-    },
-    {
-      icon: "☆",
-      title: "Звезда",
-      text: "Провёл на сайте больше минуты",
-      unlocked: true,
-    },
-    {
-      icon: "🔒",
-      title: "Сокровище",
-      text: "???",
-      unlocked: false,
-    },
-    {
-      icon: "🎮",
-      title: "Непробиваемый",
-      text: "???",
-      unlocked: false,
-    },
-    {
-      icon: "☆",
-      title: "Легенда",
-      text: "???",
-      unlocked: false,
-    },
+    { icon: "◉", title: "Первый раз", text: "Впервые посетил наш сайт", unlocked: true },
+    { icon: "▣", title: "Знаток", text: "Нашёл страницу «О нас»", unlocked: true },
+    { icon: "☆", title: "Звезда", text: "Провёл на сайте больше минуты", unlocked: true },
+    { icon: "🔒", title: "Сокровище", text: "???", unlocked: false },
+    { icon: "🎮", title: "Непробиваемый", text: "???", unlocked: false },
+    { icon: "☆", title: "Легенда", text: "???", unlocked: false },
   ];
 
   return (
@@ -1367,21 +1234,12 @@ function AboutPage() {
       <section className="about-hero">
         <div className="about-glow about-glow-one"></div>
         <div className="about-glow about-glow-two"></div>
-
         <h1>ВНИМАНИЕ! Инфа о нас!</h1>
-
         <p>
-          Привет, путешественник по вселенным! Добро пожаловать в{" "}
-          <b>Fun Universe</b> — это место, где поп-культура встречается с
-          пиксельным прошлым.
+          Привет, путешественник по вселенным! Добро пожаловать в <b>Fun Universe</b> — это место, где поп-культура встречается с пиксельным прошлым.
         </p>
-
         <p>
-          Мы — простые человека, которые устали искать мерч по различным
-          мульти-вселенным, и хотим, чтоб каждый без труда мог получить крутой
-          мерч. Мы взяли старые аркадные автоматы, смешали их с любовью к кино,
-          аниме и играм, и создали это уютное место, которое примет любого
-          независимо от его любимой вселенной.
+          Мы — простые человека, которые устали искать мерч по различным мульти-вселенным, и хотим, чтоб каждый без труда мог получить крутой мерч. Мы взяли старые аркадные автоматы, смешали их с любовью к кино, аниме и играм, и создали это уютное место, которое примет любого независимо от его любимой вселенной.
         </p>
       </section>
 
@@ -1398,27 +1256,15 @@ function AboutPage() {
       <section className="about-project-info">
         <div className="about-glow about-glow-three"></div>
         <div className="about-glow about-glow-four"></div>
-
         <p>
-          <b>Fun Universe</b> — это студенческий e-commerce проект,
-          специализирующийся на продаже тематического мерча по популярным
-          вселенным: кино, игры, аниме.
+          <b>Fun Universe</b> — это студенческий e-commerce проект, специализирующийся на продаже тематического мерча по популярным вселенным: кино, игры, аниме.
         </p>
-
         <p>
-          Платформа представляет собой интернет-магазин с уникальной концепцией:
-          ретро-аркадный стиль оформления, дополненный игровыми механиками для
-          повышения вовлеченности пользователей. Проект реализован командой из
-          трёх разработчиков в рамках учебной деятельности.
+          Платформа представляет собой интернет-магазин с уникальной концепцией: ретро-аркадный стиль оформления, дополненный игровыми механиками для повышения вовлеченности пользователей. Проект реализован командой из трёх разработчиков в рамках учебной деятельности.
         </p>
-
         <p>
-          <b>Целевая аудитория:</b> молодые люди от 16 до 30 лет, фанаты
-          поп-культуры, гик-сообщества.
-          <br />
-          <b>Цель проекта:</b> создание функционального и эстетически
-          привлекательного маркетплейса с высоким уровнем пользовательского
-          вовлечения.
+          <b>Целевая аудитория:</b> молодые люди от 16 до 30 лет, фанаты поп-культуры, гик-сообщества.<br />
+          <b>Цель проекта:</b> создание функционального и эстетически привлекательного маркетплейса с высоким уровнем пользовательского вовлечения.
         </p>
       </section>
 
@@ -1427,50 +1273,31 @@ function AboutPage() {
           <img src={aboutMascot} alt="Наш маскот" />
           <span>НАШ МАСКОТ</span>
         </div>
-
         <div className="stats-panel">
           <h2>▣ Характеристики</h2>
-
           {stats.map((stat) => (
             <div className="stat-row" key={stat.title}>
               <div className="stat-top">
                 <span>{stat.title}</span>
                 <span>{stat.value}</span>
               </div>
-
               <div className="stat-line">
-                <div
-                  className={`stat-fill ${stat.className}`}
-                  style={{ width: `${stat.value}%` }}
-                ></div>
+                <div className={`stat-fill ${stat.className}`} style={{ width: `${stat.value}%` }}></div>
               </div>
             </div>
           ))}
-
           <div className="special-box">
             <h3>★ Особенность</h3>
-            <p>
-              «Misk» — в темноте все характеристики увеличиваются на 20%.
-              Находить коллекционки без усилий | Никогда не проигрывать в
-              аркадные игры.
-            </p>
+            <p>«Misk» — в темноте все характеристики увеличиваются на 20%. Находить коллекционки без усилий | Никогда не проигрывать в аркадные игры.</p>
           </div>
         </div>
       </section>
 
       <section className="about-achievements">
         <h2>Достижения</h2>
-
         <div className="achievements-grid">
           {achievements.map((achievement) => (
-            <article
-              className={
-                achievement.unlocked
-                  ? "achievement-card unlocked"
-                  : "achievement-card locked"
-              }
-              key={achievement.title}
-            >
+            <article className={achievement.unlocked ? "achievement-card unlocked" : "achievement-card locked"} key={achievement.title}>
               <div className="achievement-icon">{achievement.icon}</div>
               <h3>{achievement.title}</h3>
               <p>{achievement.text}</p>
@@ -1511,87 +1338,63 @@ function ProfilePage({
   function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString("ru-RU");
   }
+
   function logout() {
     setCurrentUser(null);
     setPage("home");
   }
 
-function handleAvatarChange(event) {
-  const file = event.target.files[0];
-
-  if (!file) return;
-
-  if (file.size > 10 * 1024 * 1024) {
-    alert("Файл слишком большой");
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    setAvatarPreview(reader.result);
-  };
-
-  reader.readAsDataURL(file);
-}
-
-async function saveProfile() {
-  if (!currentUser || !currentUser.id) {
-    setMessage("Пользователь не авторизован");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `http://localhost:3001/api/profile/${currentUser.id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nickname,
-          avatar: avatarPreview,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    setMessage(data.message);
-
-    if (data.success) {
-      setCurrentUser(data.user);
-      setIsEditing(false);
+  function handleAvatarChange(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Файл слишком большой");
+      return;
     }
-  } catch {
-    setMessage("Ошибка соединения с сервером");
+    const reader = new FileReader();
+    reader.onload = () => setAvatarPreview(reader.result);
+    reader.readAsDataURL(file);
   }
-}
+
+  async function saveProfile() {
+    if (!currentUser || !currentUser.id) {
+      setMessage("Пользователь не авторизован");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/profile/${currentUser.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname, avatar: avatarPreview }),
+      });
+      const data = await response.json();
+      setMessage(data.message);
+      if (data.success) {
+        setCurrentUser(data.user);
+        setIsEditing(false);
+      }
+    } catch {
+      setMessage("Ошибка соединения с сервером");
+    }
+  }
 
   return (
     <main className="profile-page">
       <section className="profile-card">
         <div className="profile-title-row">
           <h1>Личный кабинет</h1>
-
-          <button className="edit-profile-btn" onClick={() => setIsEditing(!isEditing)}>
-            ✎
-          </button>
+          <button className="edit-profile-btn" onClick={() => setIsEditing(!isEditing)}>✎</button>
         </div>
-
         <div className="profile-content">
           <div className="profile-avatar-block">
             <div className="profile-avatar">
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Аватар" />
               ) : (
-                <span>
-                  {(currentUser.nickname || currentUser.login || "U").charAt(0).toUpperCase()}
-                </span>
+                <span>{(currentUser.nickname || currentUser.login || "U").charAt(0).toUpperCase()}</span>
               )}
             </div>
-
             {isEditing && (
               <label className="avatar-upload">
                 Загрузить аватар
@@ -1599,56 +1402,39 @@ async function saveProfile() {
               </label>
             )}
           </div>
-
           <div className="profile-info">
             <div className="profile-row">
               <span>Никнейм:</span>
-
               {isEditing ? (
-                <input
-                  value={nickname}
-                  onChange={(event) => setNickname(event.target.value)}
-                />
+                <input value={nickname} onChange={(event) => setNickname(event.target.value)} />
               ) : (
                 <b>{currentUser.nickname}</b>
               )}
             </div>
-
             <div className="profile-row">
               <span>ID пользователя:</span>
               <b>#{currentUser.id}</b>
             </div>
-
             <div className="profile-row">
               <span>Почта:</span>
               <b>{currentUser.email || "не указана"}</b>
             </div>
-
             <div className="profile-row">
               <span>Дата регистрации:</span>
               <b>{formatDate(currentUser.registeredAt)}</b>
             </div>
-
             <div className="profile-row">
               <span>Избранных товаров:</span>
               <b>{favorites.length}</b>
             </div>
-
             <div className="profile-row">
               <span>Товаров в корзине:</span>
               <b>{cartCount}</b>
             </div>
-
             {isEditing && (
-              <button className="save-profile-btn" onClick={saveProfile}>
-                Сохранить
-              </button>
+              <button className="save-profile-btn" onClick={saveProfile}>Сохранить</button>
             )}
-
-            <button className="logout-profile-btn" onClick={logout}>
-              Выйти из аккаунта
-            </button>
-
+            <button className="logout-profile-btn" onClick={logout}>Выйти из аккаунта</button>
             {message && <p className="profile-message">{message}</p>}
           </div>
         </div>
@@ -1659,7 +1445,6 @@ async function saveProfile() {
 
 function CasinoPage({ currentUser }) {
   const symbols = ["🍒", "🍋", "🍊", "🍇", "⭐", "💎"];
-
   const prizes = [
     { discount: 5, code: "RETRO5", weight: 50 },
     { discount: 10, code: "RETRO10", weight: 30 },
@@ -1672,39 +1457,23 @@ function CasinoPage({ currentUser }) {
 
   function getSavedAttempts() {
     const saved = localStorage.getItem(storageKey);
-
-    if (!saved) {
-      return { date: today, used: 0 };
-    }
-
+    if (!saved) return { date: today, used: 0 };
     const data = JSON.parse(saved);
-
-    if (data.date !== today) {
-      return { date: today, used: 0 };
-    }
-
+    if (data.date !== today) return { date: today, used: 0 };
     return data;
   }
 
   const savedAttempts = getSavedAttempts();
-
   const [drums, setDrums] = useState(["⭐", "⭐", "⭐"]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [usedAttempts, setUsedAttempts] = useState(savedAttempts.used);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPrize, setCurrentPrize] = useState(null);
   const [copyMessage, setCopyMessage] = useState("");
-
   const attemptsLeft = maxAttemptsPerDay - usedAttempts;
 
   function saveAttempts(newUsedAttempts) {
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        date: today,
-        used: newUsedAttempts,
-      })
-    );
+    localStorage.setItem(storageKey, JSON.stringify({ date: today, used: newUsedAttempts }));
   }
 
   function getRandomSymbol() {
@@ -1714,34 +1483,23 @@ function CasinoPage({ currentUser }) {
   function choosePrize() {
     const totalWeight = prizes.reduce((sum, prize) => sum + prize.weight, 0);
     let random = Math.random() * totalWeight;
-
     for (const prize of prizes) {
       random -= prize.weight;
-
-      if (random <= 0) {
-        return prize;
-      }
+      if (random <= 0) return prize;
     }
-
     return prizes[0];
   }
 
   function makeLoseResult() {
     const first = getRandomSymbol();
     let second = getRandomSymbol();
-
-    while (second === first) {
-      second = getRandomSymbol();
-    }
-
+    while (second === first) second = getRandomSymbol();
     const third = Math.random() < 0.5 ? first : second;
-
     return [first, second, third];
   }
 
   function spin() {
     if (isSpinning) return;
-
     if (attemptsLeft <= 0) {
       alert("Попытки на сегодня закончились. Возвращайся завтра!");
       return;
@@ -1750,7 +1508,6 @@ function CasinoPage({ currentUser }) {
     const newUsedAttempts = usedAttempts + 1;
     setUsedAttempts(newUsedAttempts);
     saveAttempts(newUsedAttempts);
-
     setIsSpinning(true);
     setCopyMessage("");
     setModalOpen(false);
@@ -1758,27 +1515,19 @@ function CasinoPage({ currentUser }) {
     const willWin = Math.random() < 0.25;
     const prize = willWin ? choosePrize() : null;
     const winSymbol = willWin ? getRandomSymbol() : null;
-    const finalResult = willWin
-      ? [winSymbol, winSymbol, winSymbol]
-      : makeLoseResult();
+    const finalResult = willWin ? [winSymbol, winSymbol, winSymbol] : makeLoseResult();
 
     let counter = 0;
-
     const interval = setInterval(() => {
       setDrums([getRandomSymbol(), getRandomSymbol(), getRandomSymbol()]);
       counter += 1;
-
       if (counter >= 18) {
         clearInterval(interval);
         setDrums(finalResult);
         setIsSpinning(false);
-
         if (willWin) {
           setCurrentPrize(prize);
-
-          setTimeout(() => {
-            setModalOpen(true);
-          }, 450);
+          setTimeout(() => setModalOpen(true), 450);
         }
       }
     }, 90);
@@ -1786,7 +1535,6 @@ function CasinoPage({ currentUser }) {
 
   async function copyCode() {
     if (!currentPrize) return;
-
     try {
       await navigator.clipboard.writeText(currentPrize.code);
       setCopyMessage("✓ Код скопирован!");
@@ -1799,36 +1547,20 @@ function CasinoPage({ currentUser }) {
     <main className="casino-page">
       <section className="casino-container">
         <h1 className="casino-title">🎰 SPIN TO WIN 🎰</h1>
-
-        <p className="casino-subtitle">
-          Собери три одинаковых символа и получи промокод!
-        </p>
-
+        <p className="casino-subtitle">Собери три одинаковых символа и получи промокод!</p>
         <div className="casino-machine">
           <div className="casino-drums">
             {drums.map((symbol, index) => (
               <div className="casino-drum" key={index}>
-                <div
-                  className={
-                    isSpinning
-                      ? "casino-drum-inner spinning"
-                      : "casino-drum-inner"
-                  }
-                >
+                <div className={isSpinning ? "casino-drum-inner spinning" : "casino-drum-inner"}>
                   {symbol}
                 </div>
               </div>
             ))}
           </div>
-
-          <button
-            className="casino-spin-btn"
-            onClick={spin}
-            disabled={isSpinning || attemptsLeft <= 0}
-          >
+          <button className="casino-spin-btn" onClick={spin} disabled={isSpinning || attemptsLeft <= 0}>
             {isSpinning ? "SPINNING..." : "SPIN!"}
           </button>
-
           <div className="casino-attempts">
             Осталось попыток: <b>{attemptsLeft}</b> / {maxAttemptsPerDay}
           </div>
@@ -1837,21 +1569,14 @@ function CasinoPage({ currentUser }) {
 
       {modalOpen && currentPrize && (
         <div className="casino-modal" onClick={() => setModalOpen(false)}>
-          <div
-            className="casino-modal-content"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="casino-modal-content" onClick={(event) => event.stopPropagation()}>
             <h2>🎉 YOU WIN! 🎉</h2>
-
             <p>Ты выиграла скидку {currentPrize.discount}%!</p>
-
             <div className="casino-promo-code">{currentPrize.code}</div>
-
             <div className="casino-modal-buttons">
               <button onClick={copyCode}>📋 COPY CODE</button>
               <button onClick={() => setModalOpen(false)}>✕ CLOSE</button>
             </div>
-
             {copyMessage && <p className="casino-copy-message">{copyMessage}</p>}
           </div>
         </div>
@@ -1866,52 +1591,107 @@ function AdminPage({ allProducts, setAllProducts }) {
   const [category, setCategory] = useState("Фигурки");
   const [universe, setUniverse] = useState("Marvel");
   const [description, setDescription] = useState("");
+  const [isNew, setIsNew] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function refreshProducts() {
+    try {
+      const response = await fetch("http://localhost:3001/api/products");
+      const data = await response.json();
+      if (data.success) {
+        setAllProducts(data.products);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Ошибка обновления товаров:", error);
+      return false;
+    }
+  }
 
   async function addProduct(event) {
     event.preventDefault();
+    setLoading(true);
 
-    const response = await fetch("http://localhost:3001/api/products", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: title,
-        price: price,
-        category: category,
-        universe: universe,
-        description: description,
-        image: "",
-      }),
-    });
+    try {
+      const response = await fetch("http://localhost:3001/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          price: Number(price),
+          category,
+          universe,
+          description,
+          image: "",
+          isNew,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    setMessage(data.message);
-
-    if (data.success) {
-      setAllProducts([...allProducts, data.product]);
-      setTitle("");
-      setPrice("");
-      setDescription("");
+      if (data.success) {
+        await refreshProducts();
+        setTitle("");
+        setPrice("");
+        setDescription("");
+        setIsNew(false);
+        setMessage(`✅ Товар "${data.product.title}" добавлен! (Новинка: ${data.product.isNew ? "Да" : "Нет"})`);
+      } else {
+        setMessage("❌ " + data.message);
+      }
+    } catch (error) {
+      setMessage("❌ Ошибка соединения с сервером");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   }
 
   async function deleteProduct(productId) {
-    const response = await fetch(
-      `http://localhost:3001/api/products/${productId}`,
-      {
+    if (!confirm("Удалить товар?")) return;
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/products/${productId}`, {
         method: "DELETE",
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        await refreshProducts();
+        setMessage("✅ Товар удалён");
+      } else {
+        setMessage("❌ " + data.message);
       }
-    );
+    } catch (error) {
+      setMessage("❌ Ошибка соединения с сервером");
+    }
+  }
 
-    const data = await response.json();
+  async function toggleNewStatus(productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
 
-    setMessage(data.message);
+    const updatedProduct = { ...product, isNew: !product.isNew };
 
-    if (data.success) {
-      setAllProducts(allProducts.filter((product) => product.id !== productId));
+    try {
+      const response = await fetch(`http://localhost:3001/api/products/${productId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedProduct),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        await refreshProducts();
+        setMessage(`✅ Статус новинки обновлён: ${!product.isNew ? "Теперь новинка" : "Убрано из новинок"}`);
+      } else {
+        setMessage("❌ " + data.message);
+      }
+    } catch (error) {
+      setMessage("❌ Ошибка соединения с сервером");
     }
   }
 
@@ -1925,15 +1705,15 @@ function AdminPage({ allProducts, setAllProducts }) {
           placeholder="Название товара"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
+          required
         />
-
         <input
           type="number"
           placeholder="Цена"
           value={price}
           onChange={(event) => setPrice(event.target.value)}
+          required
         />
-
         <select value={category} onChange={(event) => setCategory(event.target.value)}>
           <option value="Фигурки">Фигурки</option>
           <option value="Комиксы">Комиксы</option>
@@ -1941,7 +1721,6 @@ function AdminPage({ allProducts, setAllProducts }) {
           <option value="Мерч">Мерч</option>
           <option value="Игры">Игры</option>
         </select>
-
         <select value={universe} onChange={(event) => setUniverse(event.target.value)}>
           <option value="Marvel">Marvel</option>
           <option value="DC">DC</option>
@@ -1949,56 +1728,124 @@ function AdminPage({ allProducts, setAllProducts }) {
           <option value="Star Wars">Star Wars</option>
           <option value="Games">Games</option>
         </select>
-
         <textarea
           placeholder="Описание"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
 
-        <button type="submit">Добавить товар</button>
+        <label style={{ display: "flex", alignItems: "center", gap: "12px", color: "white", cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={isNew}
+            onChange={(event) => setIsNew(event.target.checked)}
+            style={{ width: "24px", height: "24px", cursor: "pointer" }}
+          />
+          <span style={{ fontFamily: "Press Start 2P", fontSize: "12px" }}>Новинка</span>
+        </label>
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Добавление..." : "Добавить товар"}
+        </button>
       </form>
 
-      {message && <p className="admin-message">{message}</p>}
+      {message && (
+        <p className="admin-message" style={{
+          padding: "12px",
+          borderRadius: "12px",
+          background: message.includes("✅") ? "#14ff42" : "#ff3b3b",
+          color: message.includes("✅") ? "#000" : "#fff",
+          fontFamily: "Press Start 2P",
+          fontSize: "10px"
+        }}>
+          {message}
+        </p>
+      )}
 
       <section className="admin-products-list">
-        {allProducts.map((product) => (
-          <article className="admin-product-card" key={product.id}>
-            <b>{product.title}</b>
-            <span>{product.price.toLocaleString("ru-RU")} ₽</span>
-            <span>
-              {product.category} / {product.universe}
-            </span>
+        {allProducts.length === 0 ? (
+          <p style={{ color: "#fff", fontFamily: "Press Start 2P", fontSize: "12px", textAlign: "center" }}>
+            Нет товаров. Добавьте первый!
+          </p>
+        ) : (
+          allProducts.map((product) => (
+            <article className="admin-product-card" key={product.id}>
+              <b>{product.title}</b>
+              <span>{product.price.toLocaleString("ru-RU")} ₽</span>
+              <span>{product.category} / {product.universe}</span>
+              <span style={{
+                color: product.isNew ? "#14ff42" : "#888",
+                fontFamily: "Press Start 2P",
+                fontSize: "8px"
+              }}>
+                {product.isNew ? "⭐ НОВИНКА" : ""}
+              </span>
 
-            <button onClick={() => deleteProduct(product.id)}>Удалить</button>
-          </article>
-        ))}
+              <button
+                onClick={() => toggleNewStatus(product.id)}
+                style={{
+                  background: product.isNew ? "#14ff42" : "#555",
+                  color: product.isNew ? "#000" : "#fff",
+                  border: "4px solid #111",
+                  borderRadius: "12px",
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  fontFamily: "Press Start 2P",
+                  fontSize: "8px",
+                }}
+              >
+                {product.isNew ? "⭐ Убрать" : "Добавить в новинки"}
+              </button>
+
+              <button
+                onClick={() => deleteProduct(product.id)}
+                style={{
+                  background: "#ff3b3b",
+                  color: "#fff",
+                  border: "4px solid #111",
+                  borderRadius: "12px",
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  fontFamily: "Press Start 2P",
+                  fontSize: "8px",
+                }}
+              >
+                Удалить
+              </button>
+            </article>
+          ))
+        )}
       </section>
     </main>
   );
 }
 
 function App() {
-  
   const [page, setPage] = useState("home");
   const [selectedUniverseFromPage, setSelectedUniverseFromPage] = useState("");
-  const [selectedCategoryFromHome,setSelectedCategoryFromHome] = useState("");
+  const [selectedCategoryFromHome, setSelectedCategoryFromHome] = useState("");
   const [cart, setCart] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
-useEffect(() => {
-  fetch("http://localhost:3001/api/products")
-    .then((response) => response.json())
-    .then((data) => {
+
+  const refreshProducts = async () => {
+    try {
+      const response = await fetch("http://localhost:3001/api/products");
+      const data = await response.json();
       if (data.success) {
         setAllProducts(data.products);
+        console.log("✅ Товары загружены:", data.products);
       }
-    })
-    .catch(() => {
-      console.log("Ошибка загрузки товаров");
-    });
-}, []);
+    } catch (error) {
+      console.error("❌ Ошибка загрузки товаров:", error);
+    }
+  };
+
+  useEffect(() => {
+    refreshProducts();
+  }, []);
+
   function toggleFavorite(productId) {
     if (favorites.includes(productId)) {
       setFavorites(favorites.filter((id) => id !== productId));
@@ -2010,27 +1857,20 @@ useEffect(() => {
   function addToCart(productId) {
     setCart((currentCart) => {
       const existingProduct = currentCart.find((item) => item.id === productId);
-
       if (existingProduct) {
         return currentCart.map((item) =>
-          item.id === productId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+          item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-
       return [...currentCart, { id: productId, quantity: 1 }];
     });
   }
 
   function changeCartQuantity(productId, quantity) {
     if (quantity <= 0) {
-      setCart((currentCart) =>
-        currentCart.filter((item) => item.id !== productId)
-      );
+      setCart((currentCart) => currentCart.filter((item) => item.id !== productId));
       return;
     }
-
     setCart((currentCart) =>
       currentCart.map((item) =>
         item.id === productId ? { ...item, quantity } : item
@@ -2039,9 +1879,7 @@ useEffect(() => {
   }
 
   function removeFromCart(productId) {
-    setCart((currentCart) =>
-      currentCart.filter((item) => item.id !== productId)
-    );
+    setCart((currentCart) => currentCart.filter((item) => item.id !== productId));
   }
 
   return (
@@ -2049,30 +1887,33 @@ useEffect(() => {
       <Header setPage={setPage} currentUser={currentUser} />
 
       {page === "home" && (
-  <HomePage
-    setPage={setPage}
-    setSelectedCategoryFromHome={setSelectedCategoryFromHome}
-  />
-)}
+        <HomePage
+          setPage={setPage}
+          setSelectedCategoryFromHome={setSelectedCategoryFromHome}
+          addToCart={addToCart}
+          allProducts={allProducts}
+          currentUser={currentUser}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
+        />
+      )}
 
       {page === "casino" && <CasinoPage currentUser={currentUser} />}
 
       {page === "products" && (
-      <ProductsPage
-        currentUser={currentUser}
-        favorites={favorites}
-        toggleFavorite={toggleFavorite}
-        setPage={setPage}
-        addToCart={addToCart}
-
-        selectedUniverseFromPage={selectedUniverseFromPage}
-        setSelectedUniverseFromPage={setSelectedUniverseFromPage}
-
-        selectedCategoryFromHome={selectedCategoryFromHome}
-        setSelectedCategoryFromHome={setSelectedCategoryFromHome}
-        allProducts={allProducts}
-      />
-    )}
+        <ProductsPage
+          currentUser={currentUser}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
+          setPage={setPage}
+          addToCart={addToCart}
+          selectedUniverseFromPage={selectedUniverseFromPage}
+          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+          selectedCategoryFromHome={selectedCategoryFromHome}
+          setSelectedCategoryFromHome={setSelectedCategoryFromHome}
+          allProducts={allProducts}
+        />
+      )}
 
       {page === "universes" && (
         <UniversesPage
@@ -2082,9 +1923,10 @@ useEffect(() => {
       )}
 
       {page === "about" && <AboutPage />}
+
       {page === "admin" && (
-  <AdminPage allProducts={allProducts} setAllProducts={setAllProducts} />
-)}
+        <AdminPage allProducts={allProducts} setAllProducts={setAllProducts} />
+      )}
 
       {page === "favorites" && (
         <FavoritesPage
@@ -2094,7 +1936,6 @@ useEffect(() => {
           setPage={setPage}
           allProducts={allProducts}
         />
-        
       )}
 
       {page === "cart" && (
