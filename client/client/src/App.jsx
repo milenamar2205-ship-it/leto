@@ -1462,25 +1462,35 @@ function ProfilePage({
     return new Date(dateString).toLocaleDateString("ru-RU");
   }
 
-  function handleAvatarChange(event) {
-    const file = event.target.files[0];
+function handleAvatarChange(event) {
+  const file = event.target.files[0];
 
-    if (!file) {
-      return;
-    }
+  if (!file) return;
 
-    const reader = new FileReader();
-
-    reader.onload = function () {
-      setAvatarPreview(reader.result);
-    };
-
-    reader.readAsDataURL(file);
+  if (file.size > 10 * 1024 * 1024) {
+    alert("Файл слишком большой");
+    return;
   }
 
-  async function saveProfile() {
-    try {
-      const response = await fetch(`http://localhost:3001/api/profile/${currentUser.id}`, {
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    setAvatarPreview(reader.result);
+  };
+
+  reader.readAsDataURL(file);
+}
+
+async function saveProfile() {
+  if (!currentUser || !currentUser.id) {
+    setMessage("Пользователь не авторизован");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:3001/api/profile/${currentUser.id}`,
+      {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -1489,20 +1499,21 @@ function ProfilePage({
           nickname,
           avatar: avatarPreview,
         }),
-      });
-
-      const data = await response.json();
-
-      setMessage(data.message);
-
-      if (data.success) {
-        setCurrentUser(data.user);
-        setIsEditing(false);
       }
-    } catch (error) {
-      setMessage("Ошибка соединения с сервером");
+    );
+
+    const data = await response.json();
+
+    setMessage(data.message);
+
+    if (data.success) {
+      setCurrentUser(data.user);
+      setIsEditing(false);
     }
+  } catch {
+    setMessage("Ошибка соединения с сервером");
   }
+}
 
   return (
     <main className="profile-page">
