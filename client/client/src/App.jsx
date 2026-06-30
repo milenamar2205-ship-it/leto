@@ -97,6 +97,7 @@ function Header({ setPage, currentUser }) {
         <button onClick={() => setPage("products")}>Все товары</button>
         <button onClick={() => setPage("universes")}>Выбери свою вселенную</button>
         <button onClick={() => setPage("about")}>О нас</button>
+        <button onClick={() => setPage("admin")}>Админ</button>
       </nav>
 
       <div className="header-actions">
@@ -688,6 +689,7 @@ function ProductsPage({
 
   selectedCategoryFromHome,
   setSelectedCategoryFromHome,
+  allProducts,
 }) {
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -979,7 +981,13 @@ function Footer({ setPage }) {
   );
 }
 
-function FavoritesPage({ currentUser, favorites, toggleFavorite, setPage }) {
+function FavoritesPage({
+  currentUser,
+  favorites,
+  toggleFavorite,
+  setPage,
+  allProducts,
+}) {
   const favoriteProducts = allProducts.filter((product) =>
     favorites.includes(product.id)
   );
@@ -1035,6 +1043,7 @@ function CartPage({
   changeCartQuantity,
   removeFromCart,
   setPage,
+  allProducts,
 }) {
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState("");
@@ -1851,6 +1860,124 @@ function CasinoPage({ currentUser }) {
   );
 }
 
+function AdminPage({ allProducts, setAllProducts }) {
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("Фигурки");
+  const [universe, setUniverse] = useState("Marvel");
+  const [description, setDescription] = useState("");
+  const [message, setMessage] = useState("");
+
+  async function addProduct(event) {
+    event.preventDefault();
+
+    const response = await fetch("http://localhost:3001/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: title,
+        price: price,
+        category: category,
+        universe: universe,
+        description: description,
+        image: "",
+      }),
+    });
+
+    const data = await response.json();
+
+    setMessage(data.message);
+
+    if (data.success) {
+      setAllProducts([...allProducts, data.product]);
+      setTitle("");
+      setPrice("");
+      setDescription("");
+    }
+  }
+
+  async function deleteProduct(productId) {
+    const response = await fetch(
+      `http://localhost:3001/api/products/${productId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    const data = await response.json();
+
+    setMessage(data.message);
+
+    if (data.success) {
+      setAllProducts(allProducts.filter((product) => product.id !== productId));
+    }
+  }
+
+  return (
+    <main className="admin-page">
+      <h1>Админка товаров</h1>
+
+      <form className="admin-form" onSubmit={addProduct}>
+        <input
+          type="text"
+          placeholder="Название товара"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+        />
+
+        <input
+          type="number"
+          placeholder="Цена"
+          value={price}
+          onChange={(event) => setPrice(event.target.value)}
+        />
+
+        <select value={category} onChange={(event) => setCategory(event.target.value)}>
+          <option value="Фигурки">Фигурки</option>
+          <option value="Комиксы">Комиксы</option>
+          <option value="Манга">Манга</option>
+          <option value="Мерч">Мерч</option>
+          <option value="Игры">Игры</option>
+        </select>
+
+        <select value={universe} onChange={(event) => setUniverse(event.target.value)}>
+          <option value="Marvel">Marvel</option>
+          <option value="DC">DC</option>
+          <option value="Anime">Anime</option>
+          <option value="Star Wars">Star Wars</option>
+          <option value="Games">Games</option>
+        </select>
+
+        <textarea
+          placeholder="Описание"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        />
+
+        <button type="submit">Добавить товар</button>
+      </form>
+
+      {message && <p className="admin-message">{message}</p>}
+
+      <section className="admin-products-list">
+        {allProducts.map((product) => (
+          <article className="admin-product-card" key={product.id}>
+            <b>{product.title}</b>
+            <span>{product.price.toLocaleString("ru-RU")} ₽</span>
+            <span>
+              {product.category} / {product.universe}
+            </span>
+
+            <button onClick={() => deleteProduct(product.id)}>Удалить</button>
+          </article>
+        ))}
+      </section>
+    </main>
+  );
+}
+
 function App() {
   
   const [page, setPage] = useState("home");
@@ -1859,7 +1986,19 @@ function App() {
   const [cart, setCart] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [favorites, setFavorites] = useState([]);
-
+  const [allProducts, setAllProducts] = useState([]);
+useEffect(() => {
+  fetch("http://localhost:3001/api/products")
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        setAllProducts(data.products);
+      }
+    })
+    .catch(() => {
+      console.log("Ошибка загрузки товаров");
+    });
+}, []);
   function toggleFavorite(productId) {
     if (favorites.includes(productId)) {
       setFavorites(favorites.filter((id) => id !== productId));
@@ -1931,6 +2070,7 @@ function App() {
 
         selectedCategoryFromHome={selectedCategoryFromHome}
         setSelectedCategoryFromHome={setSelectedCategoryFromHome}
+        allProducts={allProducts}
       />
     )}
 
@@ -1942,6 +2082,9 @@ function App() {
       )}
 
       {page === "about" && <AboutPage />}
+      {page === "admin" && (
+  <AdminPage allProducts={allProducts} setAllProducts={setAllProducts} />
+)}
 
       {page === "favorites" && (
         <FavoritesPage
@@ -1949,7 +2092,9 @@ function App() {
           favorites={favorites}
           toggleFavorite={toggleFavorite}
           setPage={setPage}
+          allProducts={allProducts}
         />
+        
       )}
 
       {page === "cart" && (
@@ -1959,6 +2104,7 @@ function App() {
           changeCartQuantity={changeCartQuantity}
           removeFromCart={removeFromCart}
           setPage={setPage}
+          allProducts={allProducts}
         />
       )}
 
