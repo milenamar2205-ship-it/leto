@@ -592,14 +592,6 @@ function LoginPage({ currentUser, setCurrentUser }) {
     }
   }
 
-  function logout() {
-    setCurrentUser(null);
-    setLogin("");
-    setPassword("");
-    setMessage("Вы вышли из аккаунта");
-    setSuccess(true);
-  }
-
   return (
     <main className="login-page">
       <section className="login-card">
@@ -607,10 +599,10 @@ function LoginPage({ currentUser, setCurrentUser }) {
 
         {currentUser ? (
           <div className="profile-box">
-            <p>
-              Вы вошли как: <b>{currentUser.nickname || currentUser.login}</b>
-            </p>
-            <button onClick={logout}>Выйти</button>
+           <p>
+             Вы уже вошли как: <b>{currentUser.nickname || currentUser.login}</b>
+           </p>
+           <p>Выйти из аккаунта можно в личном кабинете.</p>
           </div>
         ) : (
           <>
@@ -1510,6 +1502,10 @@ function ProfilePage({
   function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString("ru-RU");
   }
+  function logout() {
+    setCurrentUser(null);
+    setPage("home");
+  }
 
 function handleAvatarChange(event) {
   const file = event.target.files[0];
@@ -1639,6 +1635,10 @@ async function saveProfile() {
                 Сохранить
               </button>
             )}
+
+            <button className="logout-profile-btn" onClick={logout}>
+              Выйти из аккаунта
+            </button>
 
             {message && <p className="profile-message">{message}</p>}
           </div>
