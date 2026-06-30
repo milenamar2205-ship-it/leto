@@ -1,15 +1,33 @@
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-const users = [];
+const usersFile = path.join(__dirname, "users.json");
+
+function loadUsers() {
+  try {
+    const data = fs.readFileSync(usersFile, "utf8");
+    return JSON.parse(data);
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveUsers(users) {
+  fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+}
+
+let users = loadUsers();
 
 app.post("/api/register", (req, res) => {
-  const { login, password } = req.body;
+  const { login, password, email } = req.body;
 
   const userExists = users.find((user) => user.login === login);
 
@@ -20,7 +38,18 @@ app.post("/api/register", (req, res) => {
     });
   }
 
-  users.push({ login, password });
+const newUser = {
+  id: users.length + 1,
+  login,
+  password,
+  nickname: login,
+  avatar: "",
+  email,
+  registeredAt: new Date().toISOString(),
+};
+
+  users.push(newUser);
+  saveUsers(users);
 
   res.json({
     success: true,
@@ -32,9 +61,7 @@ app.post("/api/login", (req, res) => {
   const { login, password } = req.body;
 
   const user = users.find(
-    (user) =>
-      user.login === login &&
-      user.password === password
+    (u) => u.login === login && u.password === password
   );
 
   if (!user) {
@@ -47,13 +74,36 @@ app.post("/api/login", (req, res) => {
   res.json({
     success: true,
     message: "Вход выполнен",
-    user: user.login,
+    user,
+  });
+});
+
+app.put("/api/profile/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const { nickname, avatar } = req.body;
+
+  const user = users.find((u) => u.id === id);
+
+  if (!user) {
+    return res.json({
+      success: false,
+      message: "Пользователь не найден",
+    });
+  }
+
+  user.nickname = nickname;
+  user.avatar = avatar;
+
+  saveUsers(users);
+
+  res.json({
+    success: true,
+    message: "Профиль сохранён",
+    user,
   });
 });
 
 app.listen(3001, () => {
   console.log("Сервер запущен на порту 3001");
 });
-
-
 
