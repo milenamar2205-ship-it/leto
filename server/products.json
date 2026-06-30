@@ -1,0 +1,83 @@
+[
+  {
+    "id": 1,
+    "title": "Фигурка Spider-Man",
+    "price": 2890,
+    "category": "Фигурки",
+    "universe": "Marvel",
+    "description": "Коллекционная фигурка Spider-Man",
+    "image": ""
+  },
+  {
+    "id": 2,
+    "title": "Комикс Batman #1",
+    "price": 990,
+    "category": "Комиксы",
+    "universe": "DC",
+    "description": "Комикс Batman для коллекции",
+    "image": ""
+  },
+  {
+    "id": 3,
+    "title": "Фигурка Levi Ackerman",
+    "price": 5190,
+    "category": "Фигурки",
+    "universe": "Anime",
+    "description": "Аниме-фигурка Levi Ackerman",
+    "image": ""
+  },
+  {
+    "id": 4,
+    "title": "Манга Chainsaw Man",
+    "price": 750,
+    "category": "Манга",
+    "universe": "Anime",
+    "description": "Манга Chainsaw Man",
+    "image": ""
+  },
+  {
+    "id": 5,
+    "title": "Фигурка Darth Vader",
+    "price": 4490,
+    "category": "Фигурки",
+    "universe": "Star Wars",
+    "description": "Фигурка Darth Vader",
+    "image": ""
+  },
+  {
+    "id": 6,
+    "title": "Комикс Deadpool",
+    "price": 1290,
+    "category": "Комиксы",
+    "universe": "Marvel",
+    "description": "Комикс Deadpool",
+    "image": ""
+  },
+  {
+    "id": 7,
+    "title": "FAITH: The Unholy Trinity",
+    "price": 1490,
+    "category": "Игры",
+    "universe": "Games",
+    "description": "Игра FAITH: The Unholy Trinity",
+    "image": ""
+  },
+  {
+    "id": 8,
+    "title": "Постер FAITH",
+    "price": 690,
+    "category": "Мерч",
+    "universe": "Games",
+    "description": "Постер по игре FAITH",
+    "image": ""
+  },
+  {
+    "id": 9,
+    "title": "Фигурка священника FAITH",
+    "price": 2590,
+    "category": "Фигурки",
+    "universe": "Games",
+    "description": "Фигурка персонажа из FAITH",
+    "image": ""
+  }
+]
