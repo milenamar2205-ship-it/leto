@@ -26,27 +26,46 @@ function saveUsers(users) {
 
 let users = loadUsers();
 
+
 app.post("/api/register", (req, res) => {
   const { login, password, email } = req.body;
 
-  const userExists = users.find((user) => user.login === login);
-
-  if (userExists) {
+  // Проверка заполнения полей
+  if (!login || !password || !email) {
     return res.json({
       success: false,
-      message: "Пользователь уже существует",
+      message: "Заполните все поля",
     });
   }
 
-const newUser = {
-  id: users.length + 1,
-  login,
-  password,
-  nickname: login,
-  avatar: "",
-  email,
-  registeredAt: new Date().toISOString(),
-};
+  const loginExists = users.find((user) => user.login === login);
+
+  if (loginExists) {
+    return res.json({
+      success: false,
+      message: "Такой логин уже существует",
+    });
+  }
+
+  // Проверка почты
+  const emailExists = users.find((user) => user.email === email);
+
+  if (emailExists) {
+    return res.json({
+      success: false,
+      message: "На эту почту уже зарегистрирован аккаунт",
+    });
+  }
+
+  const newUser = {
+    id: users.length + 1,
+    login,
+    password,
+    nickname: login,
+    avatar: "",
+    email,
+    registeredAt: new Date().toISOString(),
+  };
 
   users.push(newUser);
   saveUsers(users);
@@ -54,8 +73,10 @@ const newUser = {
   res.json({
     success: true,
     message: "Регистрация успешна",
+    user: newUser,
   });
 });
+
 
 app.post("/api/login", (req, res) => {
   const { login, password } = req.body;
@@ -77,6 +98,7 @@ app.post("/api/login", (req, res) => {
     user,
   });
 });
+
 
 app.put("/api/profile/:id", (req, res) => {
   const id = Number(req.params.id);
@@ -106,4 +128,3 @@ app.put("/api/profile/:id", (req, res) => {
 app.listen(3001, () => {
   console.log("Сервер запущен на порту 3001");
 });
-
