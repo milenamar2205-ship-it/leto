@@ -12,7 +12,7 @@ import gamesLogo from "./assets/games.png";
 import aboutMascot from "./assets/logo3.png";
 import ProductCard from "./components/ProductCard";
 
-function Header({ setPage, currentUser }) {
+function Header({ setPage, currentUser, isAdmin }) {
   const { t, i18n } = useTranslation();
 
   function changeLanguage(lang) {
@@ -31,7 +31,12 @@ function Header({ setPage, currentUser }) {
         <button onClick={() => setPage("products")}>{t('header.products')}</button>
         <button onClick={() => setPage("universes")}>{t('header.universes')}</button>
         <button onClick={() => setPage("about")}>{t('header.about')}</button>
-        <button onClick={() => setPage("admin")}>{t('header.admin')}</button>
+        {isAdmin && (
+          <>
+            <button onClick={() => setPage("admin")}>Админ</button>
+            <button onClick={() => setPage("support-admin")}>Чаты</button>
+          </>
+        )}
       </nav>
 
       <div className="header-actions">
@@ -1626,6 +1631,444 @@ function AdminPage({ allProducts, setAllProducts }) {
   );
 }
 
+function SupportWidget({ currentUser }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [chat, setChat] = useState(null);
+  const [text, setText] = useState("");
+  const [file, setFile] = useState(null);
+
+  async function loadChat() {
+    if (!currentUser) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/support/user/${currentUser.id}`
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setChat(data.chat);
+
+        if (isOpen && data.chat) {
+          await fetch(`http://localhost:3001/api/support/user/${data.chat.id}/read`, {
+            method: "PUT",
+          });
+        }
+      }
+    } catch {
+      console.log("Ошибка загрузки чата");
+    }
+  }
+
+  useEffect(() => {
+    loadChat();
+
+    const interval = setInterval(loadChat, 3000);
+
+    return () => clearInterval(interval);
+  }, [currentUser, isOpen]);
+
+  function handleFile(event) {
+    const selectedFile = event.target.files[0];
+
+    if (!selectedFile) return;
+
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      alert("Файл слишком большой. Максимум 5 МБ");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setFile({
+        name: selectedFile.name,
+        type: selectedFile.type,
+        data: reader.result,
+      });
+    };
+
+    reader.readAsDataURL(selectedFile);
+  }
+
+  async function sendMessage() {
+    if (!text.trim() && !file) return;
+
+    const response = await fetch("http://localhost:3001/api/support/message", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user: currentUser,
+        text: text,
+        file: file,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setChat(data.chat);
+      setText("");
+      setFile(null);
+    }
+  }
+
+  const unreadCount = chat?.userUnread || 0;
+
+  return (
+    <>
+      <button className="support-float-btn" onClick={() => setIsOpen(true)}>
+        💬
+
+        {unreadCount > 0 && (
+          <span className="support-badge">{unreadCount}</span>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="support-window">
+          <div className="support-header">
+            <div>
+              <h2>Поддержка</h2>
+              <p>Мы всегда на связи</p>
+            </div>
+
+            <button onClick={() => setIsOpen(false)}>×</button>
+          </div>
+
+          <div className="support-messages">
+            {!chat && (
+              <div className="support-message admin">
+                <div className="support-avatar">🎮</div>
+                <div className="support-bubble">
+                  Привет 👋 Мы всегда на связи. Чем могу помочь?
+                </div>
+              </div>
+            )}
+
+            {chat?.messages?.map((message) => (
+              <div
+                className={
+                  message.sender === "user"
+                    ? "support-message user"
+                    : "support-message admin"
+                }
+                key={message.id}
+              >
+                {message.sender === "admin" && (
+                  <div className="support-avatar">🎮</div>
+                )}
+
+                <div className="support-bubble">
+                  {message.text && <p>{message.text}</p>}
+
+                  {message.file && (
+                    <a
+                      href={message.file.data}
+                      download={message.file.name}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      📎 {message.file.name}
+                    </a>
+                  )}
+
+                  <span>
+                    {new Date(message.createdAt).toLocaleTimeString("ru-RU", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {file && (
+            <div className="support-file-preview">
+              📎 {file.name}
+              <button onClick={() => setFile(null)}>×</button>
+            </div>
+          )}
+
+          <div className="support-input-row">
+            <label className="support-file-btn">
+              📎
+              <input type="file" onChange={handleFile} />
+            </label>
+
+            <label className="support-file-btn">
+              📷
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFile}
+              />
+            </label>
+
+            <input
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              placeholder="Ваше сообщение..."
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  sendMessage();
+                }
+              }}
+            />
+
+            <button onClick={sendMessage}>➤</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function SupportAdminPage({ currentUser }) {
+  const [chats, setChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [text, setText] = useState("");
+  const [file, setFile] = useState(null);
+
+  async function loadChats() {
+    try {
+      const response = await fetch("http://localhost:3001/api/support/admin/chats");
+      const data = await response.json();
+
+      if (data.success) {
+        setChats(data.chats);
+      }
+    } catch {
+      console.log("Ошибка загрузки чатов");
+    }
+  }
+
+  async function openChat(chatId) {
+    const response = await fetch(
+      `http://localhost:3001/api/support/admin/chats/${chatId}`
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      setSelectedChat(data.chat);
+      loadChats();
+    }
+  }
+
+  useEffect(() => {
+    loadChats();
+
+    const interval = setInterval(loadChats, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  function handleFile(event) {
+    const selectedFile = event.target.files[0];
+
+    if (!selectedFile) return;
+
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      alert("Файл слишком большой. Максимум 5 МБ");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setFile({
+        name: selectedFile.name,
+        type: selectedFile.type,
+        data: reader.result,
+      });
+    };
+
+    reader.readAsDataURL(selectedFile);
+  }
+
+  async function sendAdminMessage() {
+    if (!selectedChat) return;
+    if (!text.trim() && !file) return;
+
+    const response = await fetch("http://localhost:3001/api/support/admin-message", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        chatId: selectedChat.id,
+        text: text,
+        file: file,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setSelectedChat(data.chat);
+      setText("");
+      setFile(null);
+      loadChats();
+    }
+  }
+
+  async function finishChat(chatId) {
+    const response = await fetch(`http://localhost:3001/api/support/${chatId}/finish`, {
+      method: "PUT",
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setSelectedChat(data.chat);
+      loadChats();
+    }
+  }
+
+  async function deleteChat(chatId) {
+    const agree = confirm("Удалить чат полностью?");
+
+    if (!agree) return;
+
+    await fetch(`http://localhost:3001/api/support/${chatId}`, {
+      method: "DELETE",
+    });
+
+    if (selectedChat?.id === chatId) {
+      setSelectedChat(null);
+    }
+
+    loadChats();
+  }
+
+  return (
+    <main className="support-admin-page">
+      <h1>Чаты поддержки</h1>
+
+      <div className="support-admin-layout">
+        <aside className="support-chat-list">
+          {chats.length === 0 && <p>Пока нет обращений</p>}
+
+          {chats.map((chat) => (
+            <div className="support-chat-list-item" key={chat.id}>
+              <button onClick={() => openChat(chat.id)}>
+                <strong>{chat.userNickname || chat.userLogin}</strong>
+                <span>{chat.userEmail}</span>
+
+                {chat.isNew && <em>Новый чат</em>}
+
+                {chat.adminUnread > 0 && (
+                  <b className="admin-chat-badge">{chat.adminUnread}</b>
+                )}
+
+                {chat.status === "finished" && <small>Завершён</small>}
+              </button>
+
+              <button
+                className="delete-chat-btn"
+                onClick={() => deleteChat(chat.id)}
+              >
+                🗑
+              </button>
+            </div>
+          ))}
+        </aside>
+
+        <section className="support-admin-chat">
+          {!selectedChat && (
+            <div className="support-admin-empty">
+              Выбери чат слева
+            </div>
+          )}
+
+          {selectedChat && (
+            <>
+              <div className="support-admin-chat-header">
+                <div>
+                  <h2>{selectedChat.userNickname}</h2>
+                  <p>{selectedChat.userEmail}</p>
+                </div>
+
+                <button onClick={() => finishChat(selectedChat.id)}>
+                  Завершить диалог
+                </button>
+              </div>
+
+              <div className="support-admin-messages">
+                {selectedChat.messages.map((message) => (
+                  <div
+                    className={
+                      message.sender === "admin"
+                        ? "admin-message-row admin"
+                        : "admin-message-row user"
+                    }
+                    key={message.id}
+                  >
+                    <div className="support-bubble">
+                      {message.text && <p>{message.text}</p>}
+
+                      {message.file && (
+                        <a
+                          href={message.file.data}
+                          download={message.file.name}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          📎 {message.file.name}
+                        </a>
+                      )}
+
+                      <span>
+                        {new Date(message.createdAt).toLocaleTimeString("ru-RU", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {file && (
+                <div className="support-file-preview">
+                  📎 {file.name}
+                  <button onClick={() => setFile(null)}>×</button>
+                </div>
+              )}
+
+              <div className="support-input-row">
+                <label className="support-file-btn">
+                  📎
+                  <input type="file" onChange={handleFile} />
+                </label>
+
+                <input
+                  value={text}
+                  onChange={(event) => setText(event.target.value)}
+                  placeholder="Ответ пользователю..."
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      sendAdminMessage();
+                    }
+                  }}
+                />
+
+                <button onClick={sendAdminMessage}>➤</button>
+              </div>
+            </>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}
+
 function App() {
   const [page, setPage] = useState("home");
   const [selectedUniverseFromPage, setSelectedUniverseFromPage] = useState("");
@@ -1634,6 +2077,8 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
+  const ADMIN_EMAIL = "adminaccc001@gmail.com";
+  const isAdmin = currentUser?.email === ADMIN_EMAIL;
 
   const refreshProducts = async () => {
     try {
@@ -1702,7 +2147,7 @@ function App() {
 
   return (
     <div className="app">
-      <Header setPage={setPage} currentUser={currentUser} />
+      <Header setPage={setPage} currentUser={currentUser} isAdmin={isAdmin} />
 
       {page === "home" && (
         <HomePage
@@ -1742,8 +2187,12 @@ function App() {
 
       {page === "about" && <AboutPage />}
 
-      {page === "admin" && (
-        <AdminPage allProducts={allProducts} setAllProducts={setAllProducts} />
+      {page === "admin" && isAdmin && (
+       <AdminPage allProducts={allProducts} setAllProducts={setAllProducts} />
+      )}
+
+      {page === "support-admin" && isAdmin && (
+        <SupportAdminPage currentUser={currentUser} />
       )}
 
       {page === "favorites" && (
@@ -1782,6 +2231,7 @@ function App() {
       )}
 
       <Footer setPage={setPage} />
+      {currentUser && !isAdmin && <SupportWidget currentUser={currentUser} />}
     </div>
   );
 }
