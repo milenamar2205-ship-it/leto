@@ -1,0 +1,182 @@
+{
+  "header": {
+    "home": "Home",
+    "products": "All Products",
+    "universes": "Choose Your Universe",
+    "about": "About Us",
+    "admin": "Admin",
+    "login": "Login",
+    "favorites": "Favorites",
+    "cart": "Cart"
+  },
+  "home": {
+    "new": "New Arrivals",
+    "catalog": "Catalog",
+    "categories": {
+      "figurines": "Figurines",
+      "comics": "Comics",
+      "manga": "Manga",
+      "games": "Games"
+    },
+    "dino": {
+      "title": "DINO RUNNER",
+      "subtitle": "Catch Your Record",
+      "hint": "Press space, click or tap to jump",
+      "start": "Press space or tap to start",
+      "gameOver": "GAME OVER",
+      "score": "Score",
+      "restart": "Press space or tap to restart",
+      "hi": "HI"
+    },
+    "about": {
+      "title": "— Why was this project created?",
+      "text": "— We made it so that no one ever suffers again from not being able to find merch for their favorite fandom during hyperfixations. So that no one feels alone in their interests, we gather a huge community of like-minded people around us. So that people don't have to run around different stores looking for a gift for a friend, but just come to us. And of course we're here just to bring you joy :)"
+    }
+  },
+  "products": {
+    "title": "All Products",
+    "found": "Products found:",
+    "sort": "Sort",
+    "sortDefault": "Sort",
+    "sortCheap": "Cheapest first",
+    "sortExpensive": "Expensive first",
+    "filters": {
+      "title": "Filters",
+      "reset": "Reset",
+      "price": "Price",
+      "priceLow": "up to 1000 ₽",
+      "priceMiddle": "1000–3000 ₽",
+      "priceHigh": "from 3000 ₽",
+      "category": "Category",
+      "universe": "Universe"
+    },
+    "inStock": "In Stock",
+    "addToCart": "Add to Cart"
+  },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty",
+    "goToProducts": "Go to all products",
+    "login": "Login / Create account",
+    "promo": "Promo Code",
+    "enterPromo": "Enter promo code",
+    "apply": "Apply",
+    "delivery": "Free Delivery",
+    "deliveryText": "Fill your cart with items and free delivery will be automatically included!",
+    "delivery1": "For orders over 1000 ₽: Free delivery by Russian Post to Moscow",
+    "delivery2": "For orders over 3000 ₽: Free delivery by Russian Post to nearby regions",
+    "delivery3": "For orders over 5000 ₽: Free delivery to Magadan, Amur, Irkutsk regions, Khabarovsk, Primorsky, Zabaikalsky, Kamchatka territories, Yakutia, Buryatia, Jewish Autonomous Region, Chukotka Autonomous Region",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "checkout": "Checkout"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "empty": "You haven't chosen your favorite items yet :(",
+    "goToProducts": "Go to all products",
+    "loginRequired": "You can only add items to favorites after registration."
+  },
+  "login": {
+    "title": "Login",
+    "register": "Register",
+    "loginTab": "Login",
+    "registerTab": "Create Account",
+    "loginPlaceholder": "Login or Email",
+    "registerPlaceholder": "Create a login",
+    "email": "Email",
+    "password": "Create a password",
+    "loginBtn": "Login",
+    "registerBtn": "Register",
+    "alreadyLogged": "You are already logged in as:",
+    "logoutHint": "You can log out in your profile.",
+    "registerSuccess": "Account created! Now log in."
+  },
+  "profile": {
+    "title": "Profile",
+    "edit": "Edit",
+    "nickname": "Nickname",
+    "id": "User ID",
+    "email": "Email",
+    "registered": "Registration Date",
+    "favoritesCount": "Favorite items",
+    "cartCount": "Items in cart",
+    "save": "Save",
+    "logout": "Logout",
+    "loginRequired": "Login or create an account to open your profile."
+  },
+  "universes": {
+    "title": "Choose Your Universe",
+    "hint": "Click on the logo to see products from the selected universe"
+  },
+  "about": {
+    "title": "ATTENTION! Info about us!",
+    "intro": "Hello, universe traveler! Welcome to Fun Universe — a place where pop culture meets pixelated past.",
+    "text": "We are simple people who got tired of looking for merch across different multi-universes, and we want everyone to easily get cool merch. We took old arcade machines, mixed them with love for movies, anime and games, and created this cozy place that will welcome anyone regardless of their favorite universe.",
+    "project": "Fun Universe is a student e-commerce project specializing in selling themed merch from popular universes: movies, games, anime.",
+    "projectText": "The platform is an online store with a unique concept: retro-arcade style design, complemented by game mechanics to increase user engagement. The project was implemented by a team of three developers as part of educational activities.",
+    "audience": "Target Audience",
+    "audienceText": "young people aged 16 to 30, pop culture fans, geek communities.",
+    "goal": "Project Goal",
+    "goalText": "creating a functional and aesthetically attractive marketplace with a high level of user engagement.",
+    "mascot": "OUR MASCOT",
+    "stats": "Stats",
+    "special": "Special Ability",
+    "specialText": "«Misk» — in the dark, all stats increase by 20%. Find collectibles effortlessly | Never lose in arcade games.",
+    "achievements": "Achievements",
+    "team": {
+      "member1": "Responsible for making the site look like it was found in an abandoned 90s arcade...",
+      "member2": "We cast spells on bugs and make sure the dinosaur runs and the site works smoothly for your enjoyment.",
+      "member3": "We know where that easter egg in «Stranger Things» is, and we ensure print quality and originality."
+    }
+  },
+  "casino": {
+    "title": "🎰 SPIN TO WIN 🎰",
+    "subtitle": "Collect three identical symbols and get a promo code!",
+    "spin": "SPIN!",
+    "spinning": "SPINNING...",
+    "attempts": "Attempts left:",
+    "win": "🎉 YOU WIN! 🎉",
+    "discount": "You won a",
+    "copy": "📋 COPY CODE",
+    "close": "✕ CLOSE",
+    "copied": "✓ Code copied!"
+  },
+  "notifications": {
+    "loginRequired": "⚠️ Please log in to add to cart!",
+    "favoriteLoginRequired": "⚠️ Please log in to add to favorites!",
+    "addedToCart": "✅ \"{{title}}\" added to cart!",
+    "addedToFavorites": "❤️ \"{{title}}\" added to favorites!",
+    "removedFromFavorites": "❤️ \"{{title}}\" removed from favorites"
+  },
+  "footer": {
+    "social": "Social Media",
+    "contacts": "Contacts",
+    "hours": "Working Hours",
+    "hoursText": "3:00 PM - 8:00 PM",
+    "aboutProject": "About Project",
+    "aboutLink": "Why was this project created?"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "addProduct": "Add Product",
+    "name": "Product Name",
+    "price": "Price",
+    "category": "Category",
+    "universe": "Universe",
+    "description": "Description",
+    "isNew": "New Arrival",
+    "addBtn": "Add Product",
+    "adding": "Adding...",
+    "delete": "Delete",
+    "noProducts": "No products. Add the first one!",
+    "addToNew": "Add to New Arrivals",
+    "removeFromNew": "⭐ Remove",
+    "newLabel": "⭐ NEW",
+    "productAdded": "✅ Product \"{{title}}\" added! (New: {{isNew}})",
+    "productDeleted": "✅ Product deleted",
+    "newStatusUpdated": "✅ New status updated: {{status}}",
+    "newStatusAdded": "Now a new arrival",
+    "newStatusRemoved": "Removed from new arrivals"
+  }
+}
