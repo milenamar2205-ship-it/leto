@@ -9,7 +9,7 @@ const PORT = 3001;
 
 const USERS_FILE = path.join(__dirname, "users.json");
 const PRODUCTS_FILE = path.join(__dirname, "products.json");
-
+const SUPPORT_CHATS_FILE = path.join(__dirname, "support_chats.json");
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
@@ -45,6 +45,24 @@ function readProducts() {
 
 function saveProducts(products) {
   saveJsonFile(PRODUCTS_FILE, products);
+}
+
+function readSupportChats() {
+  return readJsonFile(SUPPORT_CHATS_FILE);
+}
+
+function saveSupportChats(chats) {
+  saveJsonFile(SUPPORT_CHATS_FILE, chats);
+}
+
+function getNextId(items) {
+  return items.length > 0 ? Math.max(...items.map((item) => item.id)) + 1 : 1;
+}
+
+function getNextMessageId(messages) {
+  return messages.length > 0
+    ? Math.max(...messages.map((message) => message.id)) + 1
+    : 1;
 }
 
 function generateNickname(login, id) {
@@ -352,6 +370,239 @@ app.delete("/api/products/:id", function (request, response) {
   return response.json({
     success: true,
     message: "Товар удалён",
+  });
+});
+
+/* =========================
+   СЛУЖБА ПОДДЕРЖКИ
+========================= */
+
+app.get("/api/support/user/:userId", function (request, response) {
+  const userId = Number(request.params.userId);
+  const chats = readSupportChats();
+
+  const chat = chats.find(function (item) {
+    return item.userId === userId && item.status !== "deleted";
+  });
+
+  return response.json({
+    success: true,
+    chat: chat || null,
+  });
+});
+
+app.post("/api/support/message", function (request, response) {
+  const { user, text, file } = request.body;
+
+  if (!user || !user.id) {
+    return response.status(400).json({
+      success: false,
+      message: "Пользователь не найден",
+    });
+  }
+
+  if ((!text || !text.trim()) && !file) {
+    return response.status(400).json({
+      success: false,
+      message: "Сообщение пустое",
+    });
+  }
+
+  const chats = readSupportChats();
+
+  let chat = chats.find(function (item) {
+    return item.userId === user.id && item.status !== "deleted";
+  });
+
+  if (!chat) {
+    chat = {
+      id: getNextId(chats),
+      userId: user.id,
+      userLogin: user.login,
+      userEmail: user.email || "",
+      userNickname: user.nickname || user.login,
+      status: "active",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      adminUnread: 0,
+      userUnread: 0,
+      isNew: true,
+      messages: [],
+    };
+
+    chats.push(chat);
+  }
+
+  const newMessage = {
+    id: getNextMessageId(chat.messages),
+    sender: "user",
+    text: text || "",
+    file: file || null,
+    createdAt: new Date().toISOString(),
+  };
+
+  chat.messages.push(newMessage);
+  chat.adminUnread += 1;
+  chat.updatedAt = new Date().toISOString();
+
+  saveSupportChats(chats);
+
+  return response.json({
+    success: true,
+    message: "Сообщение отправлено",
+    chat: chat,
+  });
+});
+
+app.get("/api/support/admin/chats", function (request, response) {
+  const chats = readSupportChats().filter(function (chat) {
+    return chat.status !== "deleted";
+  });
+
+  chats.sort(function (a, b) {
+    return new Date(b.updatedAt) - new Date(a.updatedAt);
+  });
+
+  return response.json({
+    success: true,
+    chats: chats,
+  });
+});
+
+app.get("/api/support/admin/chats/:chatId", function (request, response) {
+  const chatId = Number(request.params.chatId);
+  const chats = readSupportChats();
+
+  const chat = chats.find(function (item) {
+    return item.id === chatId && item.status !== "deleted";
+  });
+
+  if (!chat) {
+    return response.status(404).json({
+      success: false,
+      message: "Чат не найден",
+    });
+  }
+
+  chat.adminUnread = 0;
+  chat.isNew = false;
+
+  saveSupportChats(chats);
+
+  return response.json({
+    success: true,
+    chat: chat,
+  });
+});
+
+app.post("/api/support/admin-message", function (request, response) {
+  const { chatId, text, file } = request.body;
+
+  if ((!text || !text.trim()) && !file) {
+    return response.status(400).json({
+      success: false,
+      message: "Сообщение пустое",
+    });
+  }
+
+  const chats = readSupportChats();
+
+  const chat = chats.find(function (item) {
+    return item.id === Number(chatId) && item.status !== "deleted";
+  });
+
+  if (!chat) {
+    return response.status(404).json({
+      success: false,
+      message: "Чат не найден",
+    });
+  }
+
+  const newMessage = {
+    id: getNextMessageId(chat.messages),
+    sender: "admin",
+    text: text || "",
+    file: file || null,
+    createdAt: new Date().toISOString(),
+  };
+
+  chat.messages.push(newMessage);
+  chat.userUnread += 1;
+  chat.updatedAt = new Date().toISOString();
+
+  saveSupportChats(chats);
+
+  return response.json({
+    success: true,
+    message: "Ответ отправлен",
+    chat: chat,
+  });
+});
+
+app.put("/api/support/user/:chatId/read", function (request, response) {
+  const chatId = Number(request.params.chatId);
+  const chats = readSupportChats();
+
+  const chat = chats.find(function (item) {
+    return item.id === chatId && item.status !== "deleted";
+  });
+
+  if (!chat) {
+    return response.status(404).json({
+      success: false,
+      message: "Чат не найден",
+    });
+  }
+
+  chat.userUnread = 0;
+  saveSupportChats(chats);
+
+  return response.json({
+    success: true,
+    chat: chat,
+  });
+});
+
+app.put("/api/support/:chatId/finish", function (request, response) {
+  const chatId = Number(request.params.chatId);
+  const chats = readSupportChats();
+
+  const chat = chats.find(function (item) {
+    return item.id === chatId && item.status !== "deleted";
+  });
+
+  if (!chat) {
+    return response.status(404).json({
+      success: false,
+      message: "Чат не найден",
+    });
+  }
+
+  chat.status = "finished";
+  chat.updatedAt = new Date().toISOString();
+
+  saveSupportChats(chats);
+
+  return response.json({
+    success: true,
+    message: "Диалог завершён",
+    chat: chat,
+  });
+});
+
+app.delete("/api/support/:chatId", function (request, response) {
+  const chatId = Number(request.params.chatId);
+  const chats = readSupportChats();
+
+  const filteredChats = chats.filter(function (chat) {
+    return chat.id !== chatId;
+  });
+
+  saveSupportChats(filteredChats);
+
+  return response.json({
+    success: true,
+    message: "Чат удалён",
   });
 });
 
