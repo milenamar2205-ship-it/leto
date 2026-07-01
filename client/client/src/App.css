@@ -248,6 +248,51 @@ button {
   }
 }
 
+/* ===== КНОПКА МОНЕТОК В ХЕДЕРЕ ===== */
+.header-coins-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 3px solid #ffd700;
+  border-radius: 12px;
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+  font-family: "Press Start 2P", monospace;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.header-coins-btn:hover {
+  background: rgba(255, 215, 0, 0.2);
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.header-coins-btn .coins-count {
+  font-size: 12px;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 8px;
+  border-radius: 8px;
+  min-width: 24px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .header-coins-btn {
+    font-size: 12px;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  .header-coins-btn .coins-count {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+}
+
 /* ========== ГЛАВНАЯ ========== */
 .home {
   overflow: hidden;
@@ -3230,6 +3275,7 @@ button {
     transform: none !important;
   }
 }
+
 /* ========== УВЕДОМЛЕНИЯ ========== */
 .notification {
   position: fixed;
@@ -3281,12 +3327,11 @@ button {
   }
 }
 
-
 /* ========== КАРТОЧКА ТОВАРА ========== */
 .product-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 9999;
   background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
@@ -3312,6 +3357,7 @@ button {
   position: relative;
   box-shadow: 0 0 60px rgba(20, 255, 66, 0.2);
   animation: slideUp 0.3s ease;
+  z-index: 10000;
 }
 
 @keyframes slideUp {
@@ -3319,23 +3365,35 @@ button {
   to { transform: translateY(0); opacity: 1; }
 }
 
+.product-modal::-webkit-scrollbar {
+  width: 8px;
+}
+.product-modal::-webkit-scrollbar-track {
+  background: #222;
+  border-radius: 4px;
+}
+.product-modal::-webkit-scrollbar-thumb {
+  background: #14ff42;
+  border-radius: 4px;
+}
+
 .modal-close {
   position: absolute;
-  top: 16px;
-  right: 20px;
-  background: none;
+  top: 12px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.6);
   border: none;
+  border-radius: 50%;
   color: #fff;
   font-size: 28px;
   cursor: pointer;
-  font-family: "Press Start 2P", monospace;
-  transition: transform 0.2s, color 0.2s;
-  z-index: 10;
+  z-index: 100;
   width: 44px;
   height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.2s, color 0.2s;
 }
 
 .modal-close:hover {
@@ -3348,6 +3406,8 @@ button {
   grid-template-columns: 1fr 1fr;
   gap: 30px;
   margin-top: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 @media (max-width: 768px) {
@@ -3362,17 +3422,19 @@ button {
 
 .modal-image {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .product-image-placeholder {
   width: 100%;
   height: 300px;
-  background: #eeeeee;
+  background: #111;
   border: 4px solid #d8d8d8;
-  display: grid;
-  place-items: center;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: "Press Start 2P", monospace;
   color: #999;
   font-size: 14px;
@@ -3387,7 +3449,7 @@ button {
 .modal-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .modal-info h2 {
@@ -3407,7 +3469,7 @@ button {
 .modal-rating {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -3427,21 +3489,24 @@ button {
   font-family: "Press Start 2P", monospace;
   font-size: 24px;
   color: #14ff42;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 .modal-description {
   color: #ddd;
   font-size: 14px;
   line-height: 1.8;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
+/* ===== КНОПКИ ДЕЙСТВИЙ ===== */
 .modal-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin: 12px 0;
+  margin: 8px 0 4px 0;
+  position: relative;
+  z-index: 50;
 }
 
 .modal-favorite {
@@ -3451,21 +3516,25 @@ button {
   padding: 12px 20px;
   border: 3px solid #555;
   border-radius: 12px;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.3);
   color: #fff;
   font-family: "Press Start 2P", monospace;
   font-size: 11px;
-  cursor: pointer;
+  cursor: pointer !important;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 50;
 }
 
 .modal-favorite:hover {
   border-color: #ff3b8d;
+  transform: scale(1.02);
 }
 
 .modal-favorite.active {
   border-color: #ff3b8d;
   color: #ff3b8d;
+  background: rgba(255, 59, 141, 0.15);
 }
 
 .modal-cart {
@@ -3479,8 +3548,10 @@ button {
   color: #fff;
   font-family: "Press Start 2P", monospace;
   font-size: 11px;
-  cursor: pointer;
+  cursor: pointer !important;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 50;
 }
 
 .modal-cart:hover {
@@ -3488,31 +3559,32 @@ button {
   transform: scale(1.02);
 }
 
+/* ===== ОТЗЫВЫ ===== */
 .modal-reviews {
-  margin-top: 16px;
+  margin-top: 12px;
   border-top: 2px solid #333;
-  padding-top: 16px;
+  padding-top: 12px;
 }
 
 .modal-reviews h3 {
   font-family: "Press Start 2P", monospace;
   font-size: 14px;
   color: #fff;
-  margin: 0 0 16px 0;
+  margin: 0 0 12px 0;
 }
 
 .review-form {
   background: #222;
-  padding: 16px;
+  padding: 14px;
   border-radius: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .review-rating {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 10px;
   color: #fff;
   font-family: "Press Start 2P", monospace;
   font-size: 10px;
@@ -3529,8 +3601,8 @@ button {
   border: none;
   font-size: 28px;
   color: #555;
-  cursor: pointer;
-  transition: color 0.2s;
+  cursor: pointer !important;
+  transition: color 0.2s, transform 0.2s;
   padding: 0 4px;
   line-height: 1;
 }
@@ -3546,7 +3618,7 @@ button {
 
 .review-form textarea {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   border: 3px solid #444;
   border-radius: 10px;
   background: #1a1a1a;
@@ -3562,8 +3634,13 @@ button {
   outline: none;
 }
 
+.review-form textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .review-form button {
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 10px 20px;
   border: 3px solid #14ff42;
   border-radius: 10px;
@@ -3571,12 +3648,13 @@ button {
   color: #fff;
   font-family: "Press Start 2P", monospace;
   font-size: 10px;
-  cursor: pointer;
+  cursor: pointer !important;
   transition: all 0.3s ease;
 }
 
 .review-form button:hover:not(:disabled) {
   background: #6a1fc9;
+  transform: scale(1.02);
 }
 
 .review-form button:disabled {
@@ -3588,283 +3666,20 @@ button {
   color: #14ff42;
   font-family: "Press Start 2P", monospace;
   font-size: 10px;
-  padding: 12px;
+  padding: 10px;
   background: rgba(20, 255, 66, 0.1);
   border-radius: 10px;
-  margin-bottom: 16px;
-}
-
-.review-login {
-  color: #ffd700;
-  font-family: "Press Start 2P", monospace;
-  font-size: 10px;
-  padding: 12px;
-  background: rgba(255, 215, 0, 0.1);
-  border-radius: 10px;
-  margin-bottom: 16px;
-}
-
-.review-message {
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-family: "Press Start 2P", monospace;
-  font-size: 9px;
-  margin-bottom: 16px;
-}
-
-.review-message.success {
-  background: rgba(20, 255, 66, 0.2);
-  color: #14ff42;
-  border: 2px solid #14ff42;
-}
-
-.review-message.error {
-  background: rgba(255, 59, 59, 0.2);
-  color: #ff3b3b;
-  border: 2px solid #ff3b3b;
-}
-
-.reviews-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 8px;
-}
-
-.reviews-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.reviews-list::-webkit-scrollbar-track {
-  background: #222;
-  border-radius: 3px;
-}
-
-.reviews-list::-webkit-scrollbar-thumb {
-  background: #14ff42;
-  border-radius: 3px;
-}
-
-.no-reviews {
-  color: #888;
-  font-family: "Press Start 2P", monospace;
-  font-size: 10px;
-  text-align: center;
-  padding: 20px 0;
-}
-
-.review-item {
-  background: #222;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border-left: 4px solid #14ff42;
-}
-
-.review-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
-
-.review-header strong {
-  color: #fff;
-  font-family: "Press Start 2P", monospace;
-  font-size: 10px;
-}
-
-.review-stars {
-  font-size: 14px;
-  letter-spacing: 1px;
-  color: #ffd700;
-}
-
-.review-date {
-  color: #888;
-  font-family: "Press Start 2P", monospace;
-  font-size: 8px;
-  margin-left: auto;
-}
-
-.review-text {
-  color: #ccc;
-  font-size: 13px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-@media (max-width: 480px) {
-  .review-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-  .review-date {
-    margin-left: 0;
-  }
-  .modal-actions {
-    flex-direction: column;
-  }
-  .modal-favorite,
-  .modal-cart {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-.language-switcher {
-  display: flex;
-  gap: 4px;
-  margin-right: 8px;
-}
-
-.language-switcher button {
-  padding: 4px 8px;
-  border: 2px solid #555;
-  border-radius: 8px;
-  background: transparent;
-  color: #fff;
-  font-family: "Press Start 2P", monospace;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  line-height: 1;
-}
-
-.language-switcher button:hover {
-  border-color: #14ff42;
-  color: #14ff42;
-  transform: scale(1.05);
-}
-
-.language-switcher button.active-lang {
-  border-color: #14ff42;
-  background: #14ff42;
-  color: #000;
-}
-
-@media (max-width: 480px) {
-  .language-switcher {
-    gap: 2px;
-    margin-right: 4px;
-  }
-  .language-switcher button {
-    font-size: 12px;
-    padding: 2px 6px;
-  }
-}
-
-/* ========== ОТЗЫВЫ ========== */
-.modal-reviews {
-  margin-top: 16px;
-  border-top: 2px solid #333;
-  padding-top: 16px;
-}
-
-.modal-reviews h3 {
-  font-family: "Press Start 2P", monospace;
-  font-size: 14px;
-  color: #fff;
-  margin: 0 0 16px 0;
-}
-
-.review-form {
-  background: #222;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-}
-
-.review-rating {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin-bottom: 12px;
-  color: #fff;
-  font-family: "Press Start 2P", monospace;
-  font-size: 10px;
-  flex-wrap: wrap;
-}
-
-.star-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #555;
-  cursor: pointer;
-  transition: color 0.2s;
-  padding: 0 2px;
-}
-
-.star-btn:hover {
-  color: #ffd700;
-}
-
-.star-btn.active {
-  color: #ffd700;
-}
-
-.review-form textarea {
-  width: 100%;
-  padding: 12px;
-  border: 3px solid #444;
-  border-radius: 10px;
-  background: #1a1a1a;
-  color: #fff;
-  font-family: "Press Start 2P", monospace;
-  font-size: 10px;
-  resize: vertical;
-  box-sizing: border-box;
-}
-
-.review-form textarea:focus {
-  border-color: #14ff42;
-  outline: none;
-}
-
-.review-form button {
-  margin-top: 12px;
-  padding: 10px 20px;
-  border: 3px solid #14ff42;
-  border-radius: 10px;
-  background: #842bff;
-  color: #fff;
-  font-family: "Press Start 2P", monospace;
-  font-size: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.review-form button:hover:not(:disabled) {
-  background: #6a1fc9;
-}
-
-.review-form button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.review-already {
-  color: #14ff42;
-  font-family: "Press Start 2P", monospace;
-  font-size: 10px;
-  padding: 12px;
-  background: rgba(20, 255, 66, 0.1);
-  border-radius: 10px;
-  margin-bottom: 16px;
 }
 
 .review-login {
   color: #ffd700;
   font-family: "Press Start 2P", monospace;
   font-size: 10px;
-  padding: 12px;
+  padding: 10px;
   background: rgba(255, 215, 0, 0.1);
   border-radius: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .review-message {
@@ -3872,7 +3687,7 @@ button {
   border-radius: 10px;
   font-family: "Press Start 2P", monospace;
   font-size: 9px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .review-message.success {
@@ -3890,21 +3705,19 @@ button {
 .reviews-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: 300px;
+  gap: 10px;
+  max-height: 250px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-right: 6px;
 }
 
 .reviews-list::-webkit-scrollbar {
   width: 6px;
 }
-
 .reviews-list::-webkit-scrollbar-track {
   background: #222;
   border-radius: 3px;
 }
-
 .reviews-list::-webkit-scrollbar-thumb {
   background: #14ff42;
   border-radius: 3px;
@@ -3920,7 +3733,7 @@ button {
 
 .review-item {
   background: #222;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 12px;
   border-left: 4px solid #14ff42;
 }
@@ -3928,9 +3741,9 @@ button {
 .review-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .review-header strong {
@@ -3963,17 +3776,14 @@ button {
   .review-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: 4px;
   }
-  
   .review-date {
     margin-left: 0;
   }
-  
   .modal-actions {
     flex-direction: column;
   }
-  
   .modal-favorite,
   .modal-cart {
     width: 100%;
@@ -4024,8 +3834,170 @@ button {
   }
 }
 
-/* SUPPORT CHAT */
+/* ========== МАГАЗИН МОНЕТ ========== */
+.coins-shop {
+  min-height: calc(100vh - 72px);
+  padding: 40px 4vw;
+  background: #111;
+  color: #fff;
+}
 
+.coins-balance {
+  max-width: 800px;
+  margin: 0 auto 40px;
+  padding: 30px;
+  border: 4px solid #14ff42;
+  border-radius: 20px;
+  background: #1a1a2e;
+  text-align: center;
+}
+
+.coins-balance h2 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 36px;
+  color: #ffd700;
+  margin: 0 0 20px;
+}
+
+.coins-balance p {
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.coins-balance ul {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.coins-balance li {
+  padding: 8px 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  color: #ccc;
+  border-bottom: 1px solid #333;
+}
+
+.promo-shop {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.promo-shop h3 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 20px;
+  text-align: center;
+  margin-bottom: 30px;
+  color: #14ff42;
+}
+
+.promo-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .promo-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.promo-card {
+  padding: 24px;
+  border: 4px solid #333;
+  border-radius: 16px;
+  background: #1a1a2e;
+  text-align: center;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.promo-card:hover {
+  transform: translateY(-4px);
+  border-color: #ffd700;
+}
+
+.promo-discount {
+  font-family: "Press Start 2P", monospace;
+  font-size: 28px;
+  color: #ffd700;
+  margin-bottom: 12px;
+}
+
+.promo-cost {
+  font-family: "Press Start 2P", monospace;
+  font-size: 14px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.promo-card button {
+  padding: 12px 24px;
+  border: 3px solid #14ff42;
+  border-radius: 12px;
+  background: #842bff;
+  color: #fff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.promo-card button:hover:not(:disabled) {
+  background: #6a1fc9;
+  transform: scale(1.05);
+}
+
+.promo-card button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.promo-message {
+  max-width: 800px;
+  margin: 20px auto 0;
+  padding: 16px;
+  border-radius: 12px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 12px;
+  text-align: center;
+}
+
+.promo-message.success {
+  background: rgba(20, 255, 66, 0.2);
+  color: #14ff42;
+  border: 2px solid #14ff42;
+}
+
+.promo-message.error {
+  background: rgba(255, 59, 59, 0.2);
+  color: #ff3b3b;
+  border: 2px solid #ff3b3b;
+}
+
+.dino-score-coins {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Press Start 2P", monospace;
+  font-size: 48px;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  z-index: 999;
+  animation: coinPop 0.5s ease;
+}
+
+@keyframes coinPop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  50% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* ========== ПОДДЕРЖКА ========== */
 .support-float-btn {
   position: fixed;
   right: 26px;
@@ -4039,9 +4011,7 @@ button {
   color: #ffffff;
   font-size: 30px;
   cursor: pointer;
-  box-shadow:
-    0 0 20px #14ff42,
-    6px 6px 0 #111;
+  box-shadow: 0 0 20px #14ff42, 6px 6px 0 #111;
 }
 
 .support-badge,
@@ -4076,9 +4046,7 @@ button {
   background: #111111;
   color: white;
   overflow: hidden;
-  box-shadow:
-    0 0 30px #842bff,
-    8px 8px 0 #000;
+  box-shadow: 0 0 30px #842bff, 8px 8px 0 #000;
 }
 
 .support-header {
@@ -4116,9 +4084,7 @@ button {
   flex: 1;
   padding: 18px;
   overflow-y: auto;
-  background:
-    radial-gradient(circle at top, rgba(132, 43, 255, 0.18), transparent 35%),
-    #0d0d0d;
+  background: radial-gradient(circle at top, rgba(132, 43, 255, 0.18), transparent 35%), #0d0d0d;
 }
 
 .support-message,
@@ -4230,8 +4196,7 @@ button {
   cursor: pointer;
 }
 
-/* ADMIN SUPPORT PAGE */
-
+/* ========== АДМИН ЧАТЫ ========== */
 .support-admin-page {
   min-height: calc(100vh - 72px);
   padding: 42px 5vw 100px;
@@ -4361,10 +4326,289 @@ button {
   .support-admin-layout {
     grid-template-columns: 1fr;
   }
-
   .support-window {
     right: 15px;
     bottom: 100px;
     height: 560px;
   }
+}
+
+/* ===== ПРОМОКОДЫ В КОРЗИНЕ ===== */
+
+.show-promos-btn {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border: 3px solid #14ff42;
+  border-radius: 10px;
+  background: #842bff;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.show-promos-btn:hover {
+  background: #6a1fc9;
+  transform: scale(1.02);
+}
+
+.promo-list {
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 3px solid #555;
+  border-radius: 10px;
+  background: #1a1a1a;
+}
+
+.promo-list-title {
+  margin: 0 0 10px 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  color: #aaa;
+}
+
+.promo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  border: 2px solid #14ff42;
+  border-radius: 8px;
+  background: #2d2d2d;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.promo-item:hover {
+  background: #14ff42;
+  color: #000000;
+  transform: scale(1.02);
+}
+
+.promo-item:last-child {
+  margin-bottom: 0;
+}
+
+.promo-code {
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.promo-item:hover .promo-code {
+  color: #000000;
+}
+
+.promo-discount {
+  color: #14ff42;
+}
+
+.promo-item:hover .promo-discount {
+  color: #000000;
+}
+
+.applied-promo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 3px solid #14ff42;
+  border-radius: 10px;
+  background: rgba(20, 255, 66, 0.1);
+  color: #14ff42;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+}
+
+.applied-promo b {
+  color: #ffd700;
+}
+
+.remove-promo {
+  background: transparent;
+  border: none;
+  color: #ff3b3b;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.remove-promo:hover {
+  transform: scale(1.2);
+}
+
+.promo-message {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  text-align: center;
+}
+
+.promo-message.success {
+  background: rgba(20, 255, 66, 0.2);
+  color: #14ff42;
+  border: 2px solid #14ff42;
+}
+
+.promo-message.error {
+  background: rgba(255, 59, 59, 0.2);
+  color: #ff3b3b;
+  border: 2px solid #ff3b3b;
+}
+
+.discount-line {
+  color: #ffd700 !important;
+}
+
+.total-box h2 {
+  color: #14ff42 !important;
+}
+
+/* ===== ПРОМОКОДЫ В КОРЗИНЕ ===== */
+
+.show-promos-btn {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border: 3px solid #14ff42;
+  border-radius: 10px;
+  background: #842bff;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.show-promos-btn:hover {
+  background: #6a1fc9;
+  transform: scale(1.02);
+}
+
+.promo-list {
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 3px solid #555;
+  border-radius: 10px;
+  background: #1a1a1a;
+}
+
+.promo-list-title {
+  margin: 0 0 10px 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  color: #aaa;
+}
+
+.promo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  border: 2px solid #14ff42;
+  border-radius: 8px;
+  background: #2d2d2d;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.promo-item:hover {
+  background: #14ff42;
+  color: #000000;
+  transform: scale(1.02);
+}
+
+.promo-item:last-child {
+  margin-bottom: 0;
+}
+
+.promo-code {
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.promo-item:hover .promo-code {
+  color: #000000;
+}
+
+.promo-discount {
+  color: #14ff42;
+}
+
+.promo-item:hover .promo-discount {
+  color: #000000;
+}
+
+.applied-promo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 3px solid #14ff42;
+  border-radius: 10px;
+  background: rgba(20, 255, 66, 0.1);
+  color: #14ff42;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+}
+
+.applied-promo b {
+  color: #ffd700;
+}
+
+.remove-promo {
+  background: transparent;
+  border: none;
+  color: #ff3b3b;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.remove-promo:hover {
+  transform: scale(1.2);
+}
+
+.promo-message {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  text-align: center;
+}
+
+.promo-message.success {
+  background: rgba(20, 255, 66, 0.2);
+  color: #14ff42;
+  border: 2px solid #14ff42;
+}
+
+.promo-message.error {
+  background: rgba(255, 59, 59, 0.2);
+  color: #ff3b3b;
+  border: 2px solid #ff3b3b;
+}
+
+.discount-line {
+  color: #ffd700 !important;
+}
+
+.total-box h2 {
+  color: #14ff42 !important;
 }
