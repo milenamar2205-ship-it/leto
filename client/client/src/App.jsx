@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import "./App.css";
 import mainLogo from "./assets/logo.png";
 import footerLogo from "./assets/logo.png";
@@ -9,8 +10,16 @@ import dcLogo from "./assets/dc.png";
 import animeLogo from "./assets/anime.png";
 import gamesLogo from "./assets/games.png";
 import aboutMascot from "./assets/logo3.png";
+import ProductCard from "./components/ProductCard";
 
 function Header({ setPage, currentUser }) {
+  const { t, i18n } = useTranslation();
+
+  function changeLanguage(lang) {
+    i18n.changeLanguage(lang);
+    localStorage.setItem('language', lang);
+  }
+
   return (
     <header className="site-header">
       <button className="logo" onClick={() => setPage("casino")}>
@@ -18,14 +27,29 @@ function Header({ setPage, currentUser }) {
       </button>
 
       <nav className="main-nav">
-        <button onClick={() => setPage("home")}>Главная</button>
-        <button onClick={() => setPage("products")}>Все товары</button>
-        <button onClick={() => setPage("universes")}>Выбери свою вселенную</button>
-        <button onClick={() => setPage("about")}>О нас</button>
-        <button onClick={() => setPage("admin")}>Админ</button>
+        <button onClick={() => setPage("home")}>{t('header.home')}</button>
+        <button onClick={() => setPage("products")}>{t('header.products')}</button>
+        <button onClick={() => setPage("universes")}>{t('header.universes')}</button>
+        <button onClick={() => setPage("about")}>{t('header.about')}</button>
+        <button onClick={() => setPage("admin")}>{t('header.admin')}</button>
       </nav>
 
       <div className="header-actions">
+        <div className="language-switcher">
+          <button 
+            onClick={() => changeLanguage('ru')}
+            className={i18n.language === 'ru' ? 'active-lang' : ''}
+          >
+            🇷🇺
+          </button>
+          <button 
+            onClick={() => changeLanguage('en')}
+            className={i18n.language === 'en' ? 'active-lang' : ''}
+          >
+            🇬🇧
+          </button>
+        </div>
+
         <button className="header-icon" onClick={() => setPage("favorites")}>
           ♡
         </button>
@@ -44,7 +68,7 @@ function Header({ setPage, currentUser }) {
           </button>
         ) : (
           <button className="login-btn" onClick={() => setPage("login")}>
-            ➜ Вход
+            ➜ {t('header.login')}
           </button>
         )}
       </div>
@@ -61,14 +85,13 @@ function HomePage({
   favorites,
   toggleFavorite,
 }) {
+  const { t } = useTranslation();
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [slide, setSlide] = useState(0);
   const [notification, setNotification] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Фильтруем только новинки
   const newProducts = allProducts.filter(product => product.isNew === true);
-  
-  // Если новинок нет, показываем пустой массив
   const visibleProducts = newProducts.length > 0 ? newProducts.slice(slide, slide + 5) : [];
 
   function nextSlide() {
@@ -95,39 +118,41 @@ function HomePage({
 
   function showNotification(message, type = "success") {
     setNotification({ message, type });
-    setTimeout(() => {
-      setNotification(null);
-    }, 2500);
+    setTimeout(() => setNotification(null), 2500);
+  }
+
+  function openProduct(product) {
+    setSelectedProduct(product);
+  }
+
+  function closeProduct() {
+    setSelectedProduct(null);
   }
 
   function handleAddToCart(productId) {
     if (!currentUser) {
-      showNotification("⚠️ Для добавления в корзину войдите в аккаунт!", "error");
-      setTimeout(() => {
-        setPage("login");
-      }, 1500);
+      showNotification(t('notifications.loginRequired'), "error");
+      setTimeout(() => setPage("login"), 1500);
       return;
     }
-    
     addToCart(productId);
     const product = allProducts.find(p => p.id === productId);
-    showNotification(`✅ "${product?.title || "Товар"}" добавлен в корзину!`, "success");
+    showNotification(t('notifications.addedToCart', { title: product?.title || "Товар" }), "success");
   }
 
   function handleToggleFavorite(productId) {
     if (!currentUser) {
-      showNotification("⚠️ Для добавления в избранное войдите в аккаунт!", "error");
-      setTimeout(() => {
-        setPage("login");
-      }, 1500);
+      showNotification(t('notifications.favoriteLoginRequired'), "error");
+      setTimeout(() => setPage("login"), 1500);
       return;
     }
-    
     const isFavorite = favorites.includes(productId);
     toggleFavorite(productId);
     const product = allProducts.find(p => p.id === productId);
     showNotification(
-      isFavorite ? `❤️ "${product?.title || "Товар"}" удалён из избранного` : `❤️ "${product?.title || "Товар"}" добавлен в избранное!`,
+      isFavorite 
+        ? t('notifications.removedFromFavorites', { title: product?.title || "Товар" })
+        : t('notifications.addedToFavorites', { title: product?.title || "Товар" }),
       "success"
     );
   }
@@ -148,36 +173,30 @@ function HomePage({
         </div>
 
         {catalogOpen && (
-          <aside
-            className="catalog-panel"
-            onMouseLeave={() => setCatalogOpen(false)}
-          >
-            <h3>Каталог</h3>
-            <button onClick={() => openCategory("Фигурки")}>Фигурки</button>
-            <button onClick={() => openCategory("Комиксы")}>Комиксы</button>
-            <button onClick={() => openCategory("Манга")}>Манга</button>
-            <button onClick={() => openCategory("Игры")}>Игры</button>
+          <aside className="catalog-panel" onMouseLeave={() => setCatalogOpen(false)}>
+            <h3>{t('home.catalog')}</h3>
+            <button onClick={() => openCategory("Фигурки")}>{t('home.categories.figurines')}</button>
+            <button onClick={() => openCategory("Комиксы")}>{t('home.categories.comics')}</button>
+            <button onClick={() => openCategory("Манга")}>{t('home.categories.manga')}</button>
+            <button onClick={() => openCategory("Игры")}>{t('home.categories.games')}</button>
           </aside>
         )}
 
         <div className="section-heading-row">
-          <h2 className="section-title">Новинки</h2>
+          <h2 className="section-title">{t('home.new')}</h2>
           <button
             className="catalog-btn"
             onMouseEnter={() => setCatalogOpen(true)}
             onClick={() => setCatalogOpen((value) => !value)}
           >
-            Каталог
+            {t('home.catalog')}
           </button>
         </div>
 
         <div className="slider">
           {newProducts.length > 0 ? (
             <>
-              <button className="slider-arrow left" onClick={prevSlide}>
-                ←
-              </button>
-
+              <button className="slider-arrow left" onClick={prevSlide}>←</button>
               <div className="product-list">
                 {visibleProducts.map((product, index) => (
                   <article className="product-card" key={`${product.id}-${index}`}>
@@ -205,23 +224,20 @@ function HomePage({
                     >
                       {favorites.includes(product.id) ? "♥" : "♡"}
                     </button>
-
-                    <div className="product-image">IMG</div>
-                    <p className="product-desc">{product.title}</p>
+                    <div className="product-image" onClick={() => openProduct(product)} style={{ cursor: 'pointer' }}>
+                      IMG
+                    </div>
+                    <p className="product-desc" onClick={() => openProduct(product)} style={{ cursor: 'pointer' }}>
+                      {product.title}
+                    </p>
                     <p className="product-price">{product.price.toLocaleString("ru-RU")} ₽</p>
-                    <button 
-                      className="cart-btn" 
-                      onClick={() => handleAddToCart(product.id)}
-                    >
+                    <button className="cart-btn" onClick={() => handleAddToCart(product.id)}>
                       🛒
                     </button>
                   </article>
                 ))}
               </div>
-
-              <button className="slider-arrow right" onClick={nextSlide}>
-                →
-              </button>
+              <button className="slider-arrow right" onClick={nextSlide}>→</button>
             </>
           ) : null}
         </div>
@@ -232,22 +248,26 @@ function HomePage({
       <DinoRunner />
 
       <section className="about-section" id="about-project">
-        <h2>— Зачем вообще был создан этот проект?</h2>
-        <p>
-          — Мы сделали его для того чтобы больше никто и никогда не страдал от того,
-          что во время гиперфиксов не может найти мерч по своему любимому фандому.
-          Чтобы больше никто не чувствовал себя одиноко в своих интересах, мы
-          собираем вокруг себя огромное комьюнити единомышленников. Чтобы люди могли
-          больше не бегать по разным магазинам, ища подарок для друга, а просто
-          заходили к нам. И конечно же мы тут просто для того, чтобы дарить вам
-          радость :)
-        </p>
+        <h2>{t('home.about.title')}</h2>
+        <p>{t('home.about.text')}</p>
       </section>
+
+      {selectedProduct && (
+        <ProductCard
+          product={selectedProduct}
+          onClose={closeProduct}
+          currentUser={currentUser}
+          addToCart={addToCart}
+          toggleFavorite={toggleFavorite}
+          favorites={favorites}
+        />
+      )}
     </main>
   );
 }
 
 function DinoRunner() {
+  const { t } = useTranslation();
   const canvasRef = useRef(null);
   const overlayRef = useRef(null);
   const gameOverRef = useRef(null);
@@ -272,26 +292,10 @@ function DinoRunner() {
     const GRAVITY = 0.6;
     const JUMP_FORCE = -12;
 
-    let dino;
-    let obstacles;
-    let gameState;
-    let score;
-    let hiScore;
-    let gameSpeed;
-    let frameCount;
-    let groundOffset;
-    let animationId;
+    let dino, obstacles, gameState, score, hiScore, gameSpeed, frameCount, groundOffset, animationId;
 
     function initGame() {
-      dino = {
-        x: 70,
-        y: GROUND_Y,
-        w: 42,
-        h: 46,
-        vy: 0,
-        grounded: true,
-      };
-
+      dino = { x: 70, y: GROUND_Y, w: 42, h: 46, vy: 0, grounded: true };
       obstacles = [];
       gameState = "idle";
       score = 0;
@@ -324,28 +328,18 @@ function DinoRunner() {
 
     function endGame() {
       gameState = "over";
-
       if (score > hiScore) {
         hiScore = Math.floor(score);
         localStorage.setItem("dinoHiScore", hiScore);
         hiScoreEl.textContent = String(hiScore).padStart(5, "0");
       }
-
       finalScoreEl.textContent = Math.floor(score);
       gameOverEl.style.display = "flex";
     }
 
     function jump() {
-      if (gameState === "idle") {
-        startGame();
-        return;
-      }
-
-      if (gameState === "over") {
-        resetGame();
-        return;
-      }
-
+      if (gameState === "idle") { startGame(); return; }
+      if (gameState === "over") { resetGame(); return; }
       if (dino.grounded) {
         dino.vy = JUMP_FORCE;
         dino.grounded = false;
@@ -358,18 +352,15 @@ function DinoRunner() {
     }
 
     function drawDino() {
-      const x = dino.x;
-      const y = dino.y;
-      const px = 4;
-
-      rect(x, y, 8 * px, 8 * px, "#58a6ff");
-      rect(x + 8 * px, y - 2 * px, 4 * px, 4 * px, "#58a6ff");
-      rect(x + 10 * px, y - 4 * px, 4 * px, 3 * px, "#58a6ff");
-      rect(x + 12 * px, y - 3 * px, 2 * px, 2 * px, "#ffffff");
-      rect(x - 3 * px, y + 2 * px, 3 * px, 2 * px, "#58a6ff");
-      rect(x + 2 * px, y + 2 * px, 5 * px, 4 * px, "#79c0ff");
-      rect(x + 1 * px, y + 8 * px, 3 * px, 4 * px, "#3d7abf");
-      rect(x + 5 * px, y + 8 * px, 3 * px, 3 * px, "#3d7abf");
+      const x = dino.x, y = dino.y, px = 4;
+      rect(x, y, 8*px, 8*px, "#58a6ff");
+      rect(x + 8*px, y - 2*px, 4*px, 4*px, "#58a6ff");
+      rect(x + 10*px, y - 4*px, 4*px, 3*px, "#58a6ff");
+      rect(x + 12*px, y - 3*px, 2*px, 2*px, "#ffffff");
+      rect(x - 3*px, y + 2*px, 3*px, 2*px, "#58a6ff");
+      rect(x + 2*px, y + 2*px, 5*px, 4*px, "#79c0ff");
+      rect(x + 1*px, y + 8*px, 3*px, 4*px, "#3d7abf");
+      rect(x + 5*px, y + 8*px, 3*px, 3*px, "#3d7abf");
     }
 
     function drawCactus(obstacle) {
@@ -380,93 +371,53 @@ function DinoRunner() {
 
     function drawGround() {
       const y = GROUND_Y + dino.h + 4;
-
       rect(0, y, GAME_W, 2, "#30363d");
-
       for (let i = 0; i < GAME_W; i += 28) {
         rect((i - groundOffset) % GAME_W, y + 10, 14, 2, "#21262d");
       }
     }
 
     function spawnObstacle() {
-      obstacles.push({
-        x: GAME_W,
-        y: GROUND_Y + dino.h + 4,
-        w: 22,
-        h: 34 + Math.floor(Math.random() * 24),
-      });
+      obstacles.push({ x: GAME_W, y: GROUND_Y + dino.h + 4, w: 22, h: 34 + Math.floor(Math.random() * 24) });
     }
 
     function collision(a, b) {
-      return (
-        a.x + 6 < b.x + b.w &&
-        a.x + a.w - 6 > b.x &&
-        a.y + 8 < b.y &&
-        a.y + a.h > b.y - b.h
-      );
+      return a.x + 6 < b.x + b.w && a.x + a.w - 6 > b.x && a.y + 8 < b.y && a.y + a.h > b.y - b.h;
     }
 
     function update() {
       if (gameState !== "playing") return;
-
       frameCount += 1;
       score += gameSpeed * 0.02;
       updateScore();
-
-      if (frameCount % 220 === 0) {
-        gameSpeed = Math.min(gameSpeed + 0.4, 13);
-      }
-
+      if (frameCount % 220 === 0) gameSpeed = Math.min(gameSpeed + 0.4, 13);
       if (!dino.grounded) {
         dino.vy += GRAVITY;
         dino.y += dino.vy;
-
-        if (dino.y >= GROUND_Y) {
-          dino.y = GROUND_Y;
-          dino.vy = 0;
-          dino.grounded = true;
-        }
+        if (dino.y >= GROUND_Y) { dino.y = GROUND_Y; dino.vy = 0; dino.grounded = true; }
       }
-
       groundOffset = (groundOffset + gameSpeed) % GAME_W;
-
       const last = obstacles[obstacles.length - 1];
-
-      if (!last || last.x < GAME_W - 260 - Math.random() * 120) {
-        spawnObstacle();
-      }
-
-      obstacles.forEach((obstacle) => {
-        obstacle.x -= gameSpeed;
-      });
-
-      obstacles = obstacles.filter((obstacle) => obstacle.x > -50);
-
+      if (!last || last.x < GAME_W - 260 - Math.random() * 120) spawnObstacle();
+      obstacles.forEach(obstacle => obstacle.x -= gameSpeed);
+      obstacles = obstacles.filter(obstacle => obstacle.x > -50);
       for (const obstacle of obstacles) {
-        if (collision(dino, obstacle)) {
-          endGame();
-          break;
-        }
+        if (collision(dino, obstacle)) { endGame(); break; }
       }
     }
 
     function draw() {
       ctx.clearRect(0, 0, GAME_W, GAME_H);
-
       const gradient = ctx.createLinearGradient(0, 0, 0, GAME_H);
       gradient.addColorStop(0, "#0d1117");
       gradient.addColorStop(1, "#161b22");
-
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, GAME_W, GAME_H);
-
       ctx.fillStyle = "rgba(255,255,255,0.07)";
       ctx.beginPath();
       ctx.arc(680, 55, 34, 0, Math.PI * 2);
       ctx.fill();
-
       drawGround();
-
       obstacles.forEach(drawCactus);
       drawDino();
     }
@@ -487,12 +438,10 @@ function DinoRunner() {
     initGame();
     loadHiScore();
     updateScore();
-
     document.addEventListener("keydown", onKeyDown);
     canvas.addEventListener("click", jump);
     overlay.addEventListener("click", jump);
     gameOverEl.addEventListener("click", jump);
-
     loop();
 
     return () => {
@@ -507,40 +456,30 @@ function DinoRunner() {
   return (
     <section className="dino-section">
       <div className="stars"></div>
-
       <div className="dino-content">
-        <p className="dino-label">DINO RUNNER</p>
-        <h2>Поймай свой рекорд</h2>
-        <p className="dino-hint">
-          Нажми пробел, кликни или тапни, чтобы прыгнуть
-        </p>
-
+        <p className="dino-label">{t('home.dino.title')}</p>
+        <h2>{t('home.dino.subtitle')}</h2>
+        <p className="dino-hint">{t('home.dino.hint')}</p>
         <div className="dino-game">
           <canvas ref={canvasRef} width="800" height="250"></canvas>
-
           <div ref={overlayRef} className="dino-overlay">
             <div>
-              <h3>DINO RUNNER</h3>
-              <p>Нажми пробел или тапни чтобы начать</p>
+              <h3>{t('home.dino.title')}</h3>
+              <p>{t('home.dino.start')}</p>
             </div>
           </div>
-
           <div ref={gameOverRef} className="dino-overlay game-over">
             <div>
-              <h3>GAME OVER</h3>
-              <p>
-                Счёт: <span ref={finalScoreRef}>0</span>
-              </p>
-              <p>Пробел или тап чтобы начать заново</p>
+              <h3>{t('home.dino.gameOver')}</h3>
+              <p>{t('home.dino.score')}: <span ref={finalScoreRef}>0</span></p>
+              <p>{t('home.dino.restart')}</p>
             </div>
           </div>
-
           <div className="score">
-            SCORE <span ref={scoreRef}>00000</span> HI{" "}
+            {t('home.dino.score')} <span ref={scoreRef}>00000</span> {t('home.dino.hi')}{" "}
             <span ref={hiScoreRef}>00000</span>
           </div>
         </div>
-
         <button className="space-btn">SPACE</button>
       </div>
     </section>
@@ -548,6 +487,7 @@ function DinoRunner() {
 }
 
 function LoginPage({ currentUser, setCurrentUser }) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState("login");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
@@ -557,38 +497,31 @@ function LoginPage({ currentUser, setCurrentUser }) {
 
   async function sendAuthRequest(event) {
     event.preventDefault();
-
-    const url =
-      mode === "login"
-        ? "http://localhost:3001/api/login"
-        : "http://localhost:3001/api/register";
+    const url = mode === "login" ? "http://localhost:3001/api/login" : "http://localhost:3001/api/register";
 
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          login: login,
-          password: password,
-          email: email,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login, password, email }),
       });
-
       const data = await response.json();
-
       setMessage(data.message);
       setSuccess(data.success);
-
       if (data.success && mode === "login") {
-        setCurrentUser(data.user);
+        // Убеждаемся, что favorites загружены
+        const userWithFavorites = {
+          ...data.user,
+          favorites: data.user.favorites || []
+        };
+        setCurrentUser(userWithFavorites);
+        // Сохраняем favorites в localStorage для быстрого доступа
+        localStorage.setItem('favorites', JSON.stringify(userWithFavorites.favorites || []));
       }
-
       if (data.success && mode === "register") {
         setMode("login");
         setPassword("");
-        setMessage("Аккаунт создан! Теперь войдите.");
+        setMessage(t('login.registerSuccess'));
         setSuccess(true);
       }
     } catch (error) {
@@ -600,85 +533,54 @@ function LoginPage({ currentUser, setCurrentUser }) {
   return (
     <main className="login-page">
       <section className="login-card">
-        <h1>{mode === "login" ? "Вход" : "Регистрация"}</h1>
-
+        <h1>{mode === "login" ? t('login.title') : t('login.register')}</h1>
         {currentUser ? (
           <div className="profile-box">
-            <p>
-              Вы уже вошли как: <b>{currentUser.nickname || currentUser.login}</b>
-            </p>
-            <p>Выйти из аккаунта можно в личном кабинете.</p>
+            <p>{t('login.alreadyLogged')} <b>{currentUser.nickname || currentUser.login}</b></p>
+            <p>{t('login.logoutHint')}</p>
           </div>
         ) : (
           <>
             <div className="auth-tabs">
-              <button
-                className={mode === "login" ? "active" : ""}
-                onClick={() => {
-                  setMode("login");
-                  setMessage("");
-                }}
-              >
-                Вход
+              <button className={mode === "login" ? "active" : ""} onClick={() => { setMode("login"); setMessage(""); }}>
+                {t('login.loginTab')}
               </button>
-
-              <button
-                className={mode === "register" ? "active" : ""}
-                onClick={() => {
-                  setMode("register");
-                  setMessage("");
-                }}
-              >
-                Создать аккаунт
+              <button className={mode === "register" ? "active" : ""} onClick={() => { setMode("register"); setMessage(""); }}>
+                {t('login.registerTab')}
               </button>
             </div>
-
             <form onSubmit={sendAuthRequest} className="login-form">
               <input
                 type="text"
-                placeholder={mode === "login" ? "Логин или почта" : "Придумайте логин"}
+                placeholder={mode === "login" ? t('login.loginPlaceholder') : t('login.registerPlaceholder')}
                 value={login}
                 onChange={(event) => setLogin(event.target.value)}
               />
               {mode === "register" && (
                 <input
                   type="email"
-                  placeholder="Почта"
+                  placeholder={t('login.email')}
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
                 />
               )}
-
               <input
                 type="password"
-                placeholder="Придумайте пароль"
+                placeholder={t('login.password')}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
               />
-
               <button type="submit">
-                {mode === "login" ? "Войти" : "Зарегистрироваться"}
+                {mode === "login" ? t('login.loginBtn') : t('login.registerBtn')}
               </button>
             </form>
           </>
         )}
-
         {message && (
-          <p className={success ? "login-message success" : "login-message error"}>
-            {message}
-          </p>
+          <p className={success ? "login-message success" : "login-message error"}>{message}</p>
         )}
       </section>
-    </main>
-  );
-}
-
-function StubPage({ title }) {
-  return (
-    <main className="stub-page">
-      <h1>{title}</h1>
-      <p>Пока это страница-заглушка. Оформление сделаем позже.</p>
     </main>
   );
 }
@@ -695,11 +597,13 @@ function ProductsPage({
   setSelectedCategoryFromHome,
   allProducts,
 }) {
+  const { t } = useTranslation();
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedUniverses, setSelectedUniverses] = useState([]);
   const [notification, setNotification] = useState(null);
   const [sortType, setSortType] = useState("default");
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     if (selectedUniverseFromPage) {
@@ -720,10 +624,18 @@ function ProductsPage({
     setTimeout(() => setNotification(null), 2500);
   }
 
+  function openProduct(product) {
+    setSelectedProduct(product);
+  }
+
+  function closeProduct() {
+    setSelectedProduct(null);
+  }
+
   const priceFilters = [
-    { label: "до 1000 ₽", value: "low" },
-    { label: "1000–3000 ₽", value: "middle" },
-    { label: "от 3000 ₽", value: "high" },
+    { label: t('products.filters.priceLow'), value: "low" },
+    { label: t('products.filters.priceMiddle'), value: "middle" },
+    { label: t('products.filters.priceHigh'), value: "high" },
   ];
 
   const categories = ["Фигурки", "Комиксы", "Манга", "Мерч", "Игры"];
@@ -739,7 +651,6 @@ function ProductsPage({
 
   function checkPrice(product) {
     if (selectedPrices.length === 0) return true;
-
     return selectedPrices.some((filter) => {
       if (filter === "low") return product.price < 1000;
       if (filter === "middle") return product.price >= 1000 && product.price <= 3000;
@@ -750,12 +661,8 @@ function ProductsPage({
 
   const filteredProducts = allProducts.filter((product) => {
     const priceOk = checkPrice(product);
-    const categoryOk =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(product.category);
-    const universeOk =
-      selectedUniverses.length === 0 ||
-      selectedUniverses.includes(product.universe);
+    const categoryOk = selectedCategories.length === 0 || selectedCategories.includes(product.category);
+    const universeOk = selectedUniverses.length === 0 || selectedUniverses.includes(product.universe);
     return priceOk && categoryOk && universeOk;
   });
 
@@ -779,25 +686,23 @@ function ProductsPage({
         </div>
       )}
 
-      <h1>Все товары</h1>
+      <h1>{t('products.title')}</h1>
 
       <div className="products-layout">
         <aside className="filters">
           <div className="filters-header">
-            <h2>Фильтры</h2>
-            <button onClick={resetFilters}>Сбросить</button>
+            <h2>{t('products.filters.title')}</h2>
+            <button onClick={resetFilters}>{t('products.filters.reset')}</button>
           </div>
 
           <div className="filter-block">
-            <h3>Цена</h3>
+            <h3>{t('products.filters.price')}</h3>
             {priceFilters.map((filter) => (
               <label className="checkbox-row" key={filter.value}>
                 <input
                   type="checkbox"
                   checked={selectedPrices.includes(filter.value)}
-                  onChange={() =>
-                    toggleFilter(filter.value, selectedPrices, setSelectedPrices)
-                  }
+                  onChange={() => toggleFilter(filter.value, selectedPrices, setSelectedPrices)}
                 />
                 <span>{filter.label}</span>
               </label>
@@ -805,15 +710,13 @@ function ProductsPage({
           </div>
 
           <div className="filter-block">
-            <h3>Категория</h3>
+            <h3>{t('products.filters.category')}</h3>
             {categories.map((category) => (
               <label className="checkbox-row" key={category}>
                 <input
                   type="checkbox"
                   checked={selectedCategories.includes(category)}
-                  onChange={() =>
-                    toggleFilter(category, selectedCategories, setSelectedCategories)
-                  }
+                  onChange={() => toggleFilter(category, selectedCategories, setSelectedCategories)}
                 />
                 <span>{category}</span>
               </label>
@@ -821,15 +724,13 @@ function ProductsPage({
           </div>
 
           <div className="filter-block">
-            <h3>Вселенная</h3>
+            <h3>{t('products.filters.universe')}</h3>
             {universes.map((universe) => (
               <label className="checkbox-row" key={universe}>
                 <input
                   type="checkbox"
                   checked={selectedUniverses.includes(universe)}
-                  onChange={() =>
-                    toggleFilter(universe, selectedUniverses, setSelectedUniverses)
-                  }
+                  onChange={() => toggleFilter(universe, selectedUniverses, setSelectedUniverses)}
                 />
                 <span>{universe}</span>
               </label>
@@ -839,11 +740,11 @@ function ProductsPage({
 
         <section className="products-content">
           <div className="products-top">
-            <p>Найдено товаров: {filteredProducts.length}</p>
+            <p>{t('products.found')} {filteredProducts.length}</p>
             <select value={sortType} onChange={(event) => setSortType(event.target.value)}>
-              <option value="default">Сортировка</option>
-              <option value="cheap">Сначала дешёвые</option>
-              <option value="expensive">Сначала дорогие</option>
+              <option value="default">{t('products.sortDefault')}</option>
+              <option value="cheap">{t('products.sortCheap')}</option>
+              <option value="expensive">{t('products.sortExpensive')}</option>
             </select>
           </div>
 
@@ -854,14 +755,16 @@ function ProductsPage({
                   className={favorites.includes(product.id) ? "favorite-btn active" : "favorite-btn"}
                   onClick={() => {
                     if (!currentUser) {
-                      showNotification("⚠️ Для добавления в избранное войдите в аккаунт!", "error");
+                      showNotification(t('notifications.favoriteLoginRequired'), "error");
                       setTimeout(() => setPage("login"), 1500);
                       return;
                     }
                     const isFavorite = favorites.includes(product.id);
                     toggleFavorite(product.id);
                     showNotification(
-                      isFavorite ? `❤️ "${product.title}" удалён из избранного` : `❤️ "${product.title}" добавлен в избранное!`,
+                      isFavorite 
+                        ? t('notifications.removedFromFavorites', { title: product.title })
+                        : t('notifications.addedToFavorites', { title: product.title }),
                       "success"
                     );
                   }}
@@ -869,24 +772,24 @@ function ProductsPage({
                   {favorites.includes(product.id) ? "♥" : "♡"}
                 </button>
 
-                <div className="shop-image">IMG</div>
-                <p className="shop-status">В наличии</p>
-                <h3>{product.title}</h3>
-                <p className="shop-meta">
-                  {product.category} / {product.universe}
-                </p>
+                <div className="shop-image" onClick={() => openProduct(product)} style={{ cursor: 'pointer' }}>
+                  IMG
+                </div>
+                <p className="shop-status">{t('products.inStock')}</p>
+                <h3 onClick={() => openProduct(product)} style={{ cursor: 'pointer' }}>{product.title}</h3>
+                <p className="shop-meta">{product.category} / {product.universe}</p>
 
                 <div className="shop-bottom">
                   <strong>{product.price.toLocaleString("ru-RU")} ₽</strong>
                   <button
                     onClick={() => {
                       if (!currentUser) {
-                        showNotification("⚠️ Для добавления в корзину войдите в аккаунт!", "error");
+                        showNotification(t('notifications.loginRequired'), "error");
                         setTimeout(() => setPage("login"), 1500);
                         return;
                       }
                       addToCart(product.id);
-                      showNotification(`✅ "${product.title}" добавлен в корзину!`, "success");
+                      showNotification(t('notifications.addedToCart', { title: product.title }), "success");
                     }}
                   >
                     🛒
@@ -897,22 +800,31 @@ function ProductsPage({
           </div>
         </section>
       </div>
+
+      {selectedProduct && (
+        <ProductCard
+          product={selectedProduct}
+          onClose={closeProduct}
+          currentUser={currentUser}
+          addToCart={addToCart}
+          toggleFavorite={toggleFavorite}
+          favorites={favorites}
+        />
+      )}
     </main>
   );
 }
 
 function Footer({ setPage }) {
+  const { t } = useTranslation();
+
   function goToAbout(event) {
     event.preventDefault();
     setPage("home");
-
     setTimeout(() => {
       const aboutBlock = document.getElementById("about-project");
       if (aboutBlock) {
-        aboutBlock.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
+        aboutBlock.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }, 100);
   }
@@ -925,52 +837,29 @@ function Footer({ setPage }) {
 
       <div className="footer-info">
         <div className="footer-block">
-          <h2>Соц-сети</h2>
+          <h2>{t('footer.social')}</h2>
           <div className="social-buttons">
-            <a
-              href="https://t.me/FunUniverseo3o"
-              target="_blank"
-              rel="noreferrer"
-              className="social-btn tg"
-            >
-              Tg
-            </a>
-            <a
-              href="https://vk.com/sndk_tv?ysclid=mqy5za2b3t428340004"
-              target="_blank"
-              rel="noreferrer"
-              className="social-btn vk"
-            >
-              Vk
-            </a>
-            <a
-              href="https://e.mail.ru/cgi-bin/sentmsg?To=milenamar@bk.ru&from=otvet"
-              target="_blank"
-              rel="noreferrer"
-              className="social-btn mail"
-            >
-              @
-            </a>
+            <a href="https://t.me/FunUniverseo3o" target="_blank" rel="noreferrer" className="social-btn tg">Tg</a>
+            <a href="https://vk.com/sndk_tv?ysclid=mqy5za2b3t428340004" target="_blank" rel="noreferrer" className="social-btn vk">Vk</a>
+            <a href="https://e.mail.ru/cgi-bin/sentmsg?To=milenamar@bk.ru&from=otvet" target="_blank" rel="noreferrer" className="social-btn mail">@</a>
           </div>
         </div>
 
         <div className="footer-block">
-          <h2>Контакты</h2>
+          <h2>{t('footer.contacts')}</h2>
           <p>+7 900 671 0138</p>
           <p>+7 929 306 2311</p>
           <p>+7 996 736 1775</p>
         </div>
 
         <div className="footer-block">
-          <h2>Часы работы</h2>
-          <p>с 15:00 до 20:00</p>
+          <h2>{t('footer.hours')}</h2>
+          <p>{t('footer.hoursText')}</p>
         </div>
 
         <div className="footer-block">
-          <h2>О проекте</h2>
-          <a href="#about-project" onClick={goToAbout}>
-            Зачем вообще был создан этот проект?
-          </a>
+          <h2>{t('footer.aboutProject')}</h2>
+          <a href="#about-project" onClick={goToAbout}>{t('footer.aboutLink')}</a>
         </div>
       </div>
     </footer>
@@ -984,25 +873,24 @@ function FavoritesPage({
   setPage,
   allProducts,
 }) {
-  const favoriteProducts = allProducts.filter((product) =>
-    favorites.includes(product.id)
-  );
+  const { t } = useTranslation();
+  const favoriteProducts = allProducts.filter((product) => favorites.includes(product.id));
 
   return (
     <main className="products-page favorites-page">
-      <h1>Избранное</h1>
+      <h1>{t('favorites.title')}</h1>
 
       {!currentUser && (
         <div className="empty-favorites">
-          <p>Добавлять товары в избранное можно только после регистрации.</p>
-          <button onClick={() => setPage("login")}>Войти / создать аккаунт</button>
+          <p>{t('favorites.loginRequired')}</p>
+          <button onClick={() => setPage("login")}>{t('cart.login')}</button>
         </div>
       )}
 
       {currentUser && favoriteProducts.length === 0 && (
         <div className="empty-favorites">
-          <p>Вы пока не выбрали свои любимые товары :(</p>
-          <button onClick={() => setPage("products")}>Перейти ко всем товарам</button>
+          <p>{t('favorites.empty')}</p>
+          <button onClick={() => setPage("products")}>{t('favorites.goToProducts')}</button>
         </div>
       )}
 
@@ -1010,12 +898,7 @@ function FavoritesPage({
         <div className="products-grid favorites-grid">
           {favoriteProducts.map((product) => (
             <article className="shop-card" key={product.id}>
-              <button
-                className="favorite-btn active"
-                onClick={() => toggleFavorite(product.id)}
-              >
-                ♥
-              </button>
+              <button className="favorite-btn active" onClick={() => toggleFavorite(product.id)}>♥</button>
               <div className="shop-image">IMG</div>
               <h3>{product.title}</h3>
               <div className="shop-bottom">
@@ -1038,6 +921,7 @@ function CartPage({
   setPage,
   allProducts,
 }) {
+  const { t } = useTranslation();
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState("");
   const [promoMessage, setPromoMessage] = useState("");
@@ -1050,16 +934,8 @@ function CartPage({
     })
     .filter(Boolean);
 
-  const subtotal = cartProducts.reduce((sum, product) => {
-    return sum + product.price * product.quantity;
-  }, 0);
-
-  const promoDiscounts = {
-    RETRO5: 0.05,
-    RETRO10: 0.1,
-    RETRO15: 0.15,
-  };
-
+  const subtotal = cartProducts.reduce((sum, product) => sum + product.price * product.quantity, 0);
+  const promoDiscounts = { RETRO5: 0.05, RETRO10: 0.1, RETRO15: 0.15 };
   const discount = appliedPromo ? subtotal * promoDiscounts[appliedPromo] : 0;
   const total = subtotal - discount;
 
@@ -1077,11 +953,11 @@ function CartPage({
   if (!currentUser) {
     return (
       <main className="cart-page">
-        <h1>Корзина</h1>
+        <h1>{t('cart.title')}</h1>
         <div className="empty-cart">
           <img src={cartLogo} alt="Корзина" />
-          <p>ваша корзина пока пуста</p>
-          <button onClick={() => setPage("login")}>Войти / создать аккаунт</button>
+          <p>{t('cart.empty')}</p>
+          <button onClick={() => setPage("login")}>{t('cart.login')}</button>
         </div>
       </main>
     );
@@ -1090,11 +966,11 @@ function CartPage({
   if (cartProducts.length === 0) {
     return (
       <main className="cart-page">
-        <h1>Корзина</h1>
+        <h1>{t('cart.title')}</h1>
         <div className="empty-cart">
           <img src={cartLogo} alt="Корзина" />
-          <p>ваша корзина пока пуста</p>
-          <button onClick={() => setPage("products")}>Перейти ко всем товарам</button>
+          <p>{t('cart.empty')}</p>
+          <button onClick={() => setPage("products")}>{t('cart.goToProducts')}</button>
         </div>
       </main>
     );
@@ -1102,7 +978,7 @@ function CartPage({
 
   return (
     <main className="cart-page">
-      <h1>Корзина</h1>
+      <h1>{t('cart.title')}</h1>
       <div className="cart-layout">
         <section className="cart-items">
           {cartProducts.map((product) => (
@@ -1117,12 +993,8 @@ function CartPage({
                 <span>{product.quantity}</span>
                 <button onClick={() => changeCartQuantity(product.id, product.quantity + 1)}>+</button>
               </div>
-              <strong className="cart-item-total">
-                {(product.price * product.quantity).toLocaleString("ru-RU")} ₽
-              </strong>
-              <button className="cart-delete" onClick={() => removeFromCart(product.id)}>
-                🗑
-              </button>
+              <strong className="cart-item-total">{(product.price * product.quantity).toLocaleString("ru-RU")} ₽</strong>
+              <button className="cart-delete" onClick={() => removeFromCart(product.id)}>🗑</button>
             </article>
           ))}
         </section>
@@ -1130,32 +1002,27 @@ function CartPage({
         <aside className="cart-summary">
           <img className="cart-summary-logo" src={cartLogo} alt="FunUniverse" />
           <div className="promo-box">
-            <h2>Промокод</h2>
+            <h2>{t('cart.promo')}</h2>
             <div className="promo-row">
-              <input
-                type="text"
-                placeholder="Введите промокод"
-                value={promoCode}
-                onChange={(event) => setPromoCode(event.target.value)}
-              />
+              <input type="text" placeholder={t('cart.enterPromo')} value={promoCode} onChange={(event) => setPromoCode(event.target.value)} />
               <button onClick={applyPromo}>✓</button>
             </div>
             {promoMessage && <p>{promoMessage}</p>}
           </div>
           <div className="delivery-box">
-            <h2>Бесплатная доставка</h2>
-            <p>Заполняйте корзину товарами, и бесплатная доставка будет автоматически включена!</p>
+            <h2>{t('cart.delivery')}</h2>
+            <p>{t('cart.deliveryText')}</p>
             <ul>
-              <li>При заказе от 1000 ₽: Бесплатная доставка почтой России в Москву</li>
-              <li>При заказе от 3000 ₽: Бесплатная доставка почтой России в ближние регионы</li>
-              <li>При заказе от 5000 ₽: Бесплатная доставка в Магаданскую, Амурскую, Иркутскую области, Хабаровский, Приморский, Забайкальский, Камчатский край, Якутию, Бурятию, Еврейский АО, Чукотский АО</li>
+              <li>{t('cart.delivery1')}</li>
+              <li>{t('cart.delivery2')}</li>
+              <li>{t('cart.delivery3')}</li>
             </ul>
           </div>
           <div className="total-box">
-            <p>Сумма товаров: {subtotal.toLocaleString("ru-RU")} ₽</p>
-            {appliedPromo && <p>Скидка: −{discount.toLocaleString("ru-RU")} ₽</p>}
-            <h2>Итого: {total.toLocaleString("ru-RU")} ₽</h2>
-            <button>Оформить заказ</button>
+            <p>{t('cart.subtotal')}: {subtotal.toLocaleString("ru-RU")} ₽</p>
+            {appliedPromo && <p>{t('cart.discount')}: −{discount.toLocaleString("ru-RU")} ₽</p>}
+            <h2>{t('cart.total')}: {total.toLocaleString("ru-RU")} ₽</h2>
+            <button>{t('cart.checkout')}</button>
           </div>
         </aside>
       </div>
@@ -1164,6 +1031,7 @@ function CartPage({
 }
 
 function UniversesPage({ setPage, setSelectedUniverseFromPage }) {
+  const { t } = useTranslation();
   const universesList = [
     { title: "Marvel", value: "Marvel", image: marvelLogo },
     { title: "Star Wars", value: "Star Wars", image: starWarsLogo },
@@ -1179,8 +1047,8 @@ function UniversesPage({ setPage, setSelectedUniverseFromPage }) {
 
   return (
     <main className="universes-page">
-      <h1>Выбери свою вселенную</h1>
-      <p className="universes-text">Нажми на логотип, чтобы увидеть товары из выбранной вселенной</p>
+      <h1>{t('universes.title')}</h1>
+      <p className="universes-text">{t('universes.hint')}</p>
       <div className="universes-grid">
         {universesList.map((universe) => (
           <button className="universe-card" key={universe.value} onClick={() => openUniverse(universe.value)}>
@@ -1194,22 +1062,11 @@ function UniversesPage({ setPage, setSelectedUniverseFromPage }) {
 }
 
 function AboutPage() {
+  const { t } = useTranslation();
   const team = [
-    {
-      name: "DAYESA012",
-      text: "Отвечаем за то, чтобы сайт выглядел так, будто его нашли в заброшенной аркаде 90-х...",
-      avatar: "🧑‍💻",
-    },
-    {
-      name: "NONAMMM01",
-      text: "Колдуем над багами и делаем так, чтобы динозаврик бегал, а сайт работал без перебоев в ваше удовольствие.",
-      avatar: "🧙‍♀️",
-    },
-    {
-      name: "KKSE311",
-      text: "Знаем, где находится та самая пасхалка в «очень странных делах», и следим за качеством принтов и оригинальностью.",
-      avatar: "🧝",
-    },
+    { name: "DAYESA012", text: t('about.team.member1'), avatar: "🧑‍💻" },
+    { name: "NONAMMM01", text: t('about.team.member2'), avatar: "🧙‍♀️" },
+    { name: "KKSE311", text: t('about.team.member3'), avatar: "🧝" },
   ];
 
   const stats = [
@@ -1234,13 +1091,9 @@ function AboutPage() {
       <section className="about-hero">
         <div className="about-glow about-glow-one"></div>
         <div className="about-glow about-glow-two"></div>
-        <h1>ВНИМАНИЕ! Инфа о нас!</h1>
-        <p>
-          Привет, путешественник по вселенным! Добро пожаловать в <b>Fun Universe</b> — это место, где поп-культура встречается с пиксельным прошлым.
-        </p>
-        <p>
-          Мы — простые человека, которые устали искать мерч по различным мульти-вселенным, и хотим, чтоб каждый без труда мог получить крутой мерч. Мы взяли старые аркадные автоматы, смешали их с любовью к кино, аниме и играм, и создали это уютное место, которое примет любого независимо от его любимой вселенной.
-        </p>
+        <h1>{t('about.title')}</h1>
+        <p>{t('about.intro')}</p>
+        <p>{t('about.text')}</p>
       </section>
 
       <section className="about-team">
@@ -1256,25 +1109,21 @@ function AboutPage() {
       <section className="about-project-info">
         <div className="about-glow about-glow-three"></div>
         <div className="about-glow about-glow-four"></div>
+        <p><b>Fun Universe</b> — {t('about.project')}</p>
+        <p>{t('about.projectText')}</p>
         <p>
-          <b>Fun Universe</b> — это студенческий e-commerce проект, специализирующийся на продаже тематического мерча по популярным вселенным: кино, игры, аниме.
-        </p>
-        <p>
-          Платформа представляет собой интернет-магазин с уникальной концепцией: ретро-аркадный стиль оформления, дополненный игровыми механиками для повышения вовлеченности пользователей. Проект реализован командой из трёх разработчиков в рамках учебной деятельности.
-        </p>
-        <p>
-          <b>Целевая аудитория:</b> молодые люди от 16 до 30 лет, фанаты поп-культуры, гик-сообщества.<br />
-          <b>Цель проекта:</b> создание функционального и эстетически привлекательного маркетплейса с высоким уровнем пользовательского вовлечения.
+          <b>{t('about.audience')}:</b> {t('about.audienceText')}<br />
+          <b>{t('about.goal')}:</b> {t('about.goalText')}
         </p>
       </section>
 
       <section className="about-character">
         <div className="mascot-box">
           <img src={aboutMascot} alt="Наш маскот" />
-          <span>НАШ МАСКОТ</span>
+          <span>{t('about.mascot')}</span>
         </div>
         <div className="stats-panel">
-          <h2>▣ Характеристики</h2>
+          <h2>▣ {t('about.stats')}</h2>
           {stats.map((stat) => (
             <div className="stat-row" key={stat.title}>
               <div className="stat-top">
@@ -1287,14 +1136,14 @@ function AboutPage() {
             </div>
           ))}
           <div className="special-box">
-            <h3>★ Особенность</h3>
-            <p>«Misk» — в темноте все характеристики увеличиваются на 20%. Находить коллекционки без усилий | Никогда не проигрывать в аркадные игры.</p>
+            <h3>★ {t('about.special')}</h3>
+            <p>{t('about.specialText')}</p>
           </div>
         </div>
       </section>
 
       <section className="about-achievements">
-        <h2>Достижения</h2>
+        <h2>{t('about.achievements')}</h2>
         <div className="achievements-grid">
           {achievements.map((achievement) => (
             <article className={achievement.unlocked ? "achievement-card unlocked" : "achievement-card locked"} key={achievement.title}>
@@ -1316,6 +1165,7 @@ function ProfilePage({
   cart,
   setPage,
 }) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [nickname, setNickname] = useState(currentUser?.nickname || "");
   const [avatarPreview, setAvatarPreview] = useState(currentUser?.avatar || "");
@@ -1325,9 +1175,9 @@ function ProfilePage({
     return (
       <main className="profile-page">
         <section className="profile-card">
-          <h1>Личный кабинет</h1>
-          <p>Войдите или создайте аккаунт, чтобы открыть личный кабинет.</p>
-          <button onClick={() => setPage("login")}>Войти</button>
+          <h1>{t('profile.title')}</h1>
+          <p>{t('profile.loginRequired')}</p>
+          <button onClick={() => setPage("login")}>{t('header.login')}</button>
         </section>
       </main>
     );
@@ -1361,7 +1211,6 @@ function ProfilePage({
       setMessage("Пользователь не авторизован");
       return;
     }
-
     try {
       const response = await fetch(`http://localhost:3001/api/profile/${currentUser.id}`, {
         method: "PUT",
@@ -1383,7 +1232,7 @@ function ProfilePage({
     <main className="profile-page">
       <section className="profile-card">
         <div className="profile-title-row">
-          <h1>Личный кабинет</h1>
+          <h1>{t('profile.title')}</h1>
           <button className="edit-profile-btn" onClick={() => setIsEditing(!isEditing)}>✎</button>
         </div>
         <div className="profile-content">
@@ -1397,14 +1246,14 @@ function ProfilePage({
             </div>
             {isEditing && (
               <label className="avatar-upload">
-                Загрузить аватар
+                {t('profile.edit')}
                 <input type="file" accept="image/*" onChange={handleAvatarChange} />
               </label>
             )}
           </div>
           <div className="profile-info">
             <div className="profile-row">
-              <span>Никнейм:</span>
+              <span>{t('profile.nickname')}:</span>
               {isEditing ? (
                 <input value={nickname} onChange={(event) => setNickname(event.target.value)} />
               ) : (
@@ -1412,29 +1261,29 @@ function ProfilePage({
               )}
             </div>
             <div className="profile-row">
-              <span>ID пользователя:</span>
+              <span>{t('profile.id')}:</span>
               <b>#{currentUser.id}</b>
             </div>
             <div className="profile-row">
-              <span>Почта:</span>
+              <span>{t('profile.email')}:</span>
               <b>{currentUser.email || "не указана"}</b>
             </div>
             <div className="profile-row">
-              <span>Дата регистрации:</span>
+              <span>{t('profile.registered')}:</span>
               <b>{formatDate(currentUser.registeredAt)}</b>
             </div>
             <div className="profile-row">
-              <span>Избранных товаров:</span>
+              <span>{t('profile.favoritesCount')}:</span>
               <b>{favorites.length}</b>
             </div>
             <div className="profile-row">
-              <span>Товаров в корзине:</span>
+              <span>{t('profile.cartCount')}:</span>
               <b>{cartCount}</b>
             </div>
             {isEditing && (
-              <button className="save-profile-btn" onClick={saveProfile}>Сохранить</button>
+              <button className="save-profile-btn" onClick={saveProfile}>{t('profile.save')}</button>
             )}
-            <button className="logout-profile-btn" onClick={logout}>Выйти из аккаунта</button>
+            <button className="logout-profile-btn" onClick={logout}>{t('profile.logout')}</button>
             {message && <p className="profile-message">{message}</p>}
           </div>
         </div>
@@ -1444,6 +1293,7 @@ function ProfilePage({
 }
 
 function CasinoPage({ currentUser }) {
+  const { t } = useTranslation();
   const symbols = ["🍒", "🍋", "🍊", "🍇", "⭐", "💎"];
   const prizes = [
     { discount: 5, code: "RETRO5", weight: 50 },
@@ -1546,8 +1396,8 @@ function CasinoPage({ currentUser }) {
   return (
     <main className="casino-page">
       <section className="casino-container">
-        <h1 className="casino-title">🎰 SPIN TO WIN 🎰</h1>
-        <p className="casino-subtitle">Собери три одинаковых символа и получи промокод!</p>
+        <h1 className="casino-title">{t('casino.title')}</h1>
+        <p className="casino-subtitle">{t('casino.subtitle')}</p>
         <div className="casino-machine">
           <div className="casino-drums">
             {drums.map((symbol, index) => (
@@ -1559,10 +1409,10 @@ function CasinoPage({ currentUser }) {
             ))}
           </div>
           <button className="casino-spin-btn" onClick={spin} disabled={isSpinning || attemptsLeft <= 0}>
-            {isSpinning ? "SPINNING..." : "SPIN!"}
+            {isSpinning ? t('casino.spinning') : t('casino.spin')}
           </button>
           <div className="casino-attempts">
-            Осталось попыток: <b>{attemptsLeft}</b> / {maxAttemptsPerDay}
+            {t('casino.attempts')} <b>{attemptsLeft}</b> / {maxAttemptsPerDay}
           </div>
         </div>
       </section>
@@ -1570,12 +1420,12 @@ function CasinoPage({ currentUser }) {
       {modalOpen && currentPrize && (
         <div className="casino-modal" onClick={() => setModalOpen(false)}>
           <div className="casino-modal-content" onClick={(event) => event.stopPropagation()}>
-            <h2>🎉 YOU WIN! 🎉</h2>
-            <p>Ты выиграла скидку {currentPrize.discount}%!</p>
+            <h2>{t('casino.win')}</h2>
+            <p>{t('casino.discount')} {currentPrize.discount}%!</p>
             <div className="casino-promo-code">{currentPrize.code}</div>
             <div className="casino-modal-buttons">
-              <button onClick={copyCode}>📋 COPY CODE</button>
-              <button onClick={() => setModalOpen(false)}>✕ CLOSE</button>
+              <button onClick={copyCode}>{t('casino.copy')}</button>
+              <button onClick={() => setModalOpen(false)}>{t('casino.close')}</button>
             </div>
             {copyMessage && <p className="casino-copy-message">{copyMessage}</p>}
           </div>
@@ -1586,29 +1436,15 @@ function CasinoPage({ currentUser }) {
 }
 
 function AdminPage({ allProducts, setAllProducts }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("Фигурки");
   const [universe, setUniverse] = useState("Marvel");
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState("");  // ← ЕСТЬ
   const [isNew, setIsNew] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-
-  async function refreshProducts() {
-    try {
-      const response = await fetch("http://localhost:3001/api/products");
-      const data = await response.json();
-      if (data.success) {
-        setAllProducts(data.products);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Ошибка обновления товаров:", error);
-      return false;
-    }
-  }
 
   async function addProduct(event) {
     event.preventDefault();
@@ -1623,8 +1459,9 @@ function AdminPage({ allProducts, setAllProducts }) {
           price: Number(price),
           category,
           universe,
-          description,
+          description,  // ← ОТПРАВЛЯЕТСЯ НА СЕРВЕР
           image: "",
+          images: [],
           isNew,
         }),
       });
@@ -1635,63 +1472,16 @@ function AdminPage({ allProducts, setAllProducts }) {
         await refreshProducts();
         setTitle("");
         setPrice("");
-        setDescription("");
+        setDescription("");  // ← ОЧИЩАЕТСЯ
         setIsNew(false);
-        setMessage(`✅ Товар "${data.product.title}" добавлен! (Новинка: ${data.product.isNew ? "Да" : "Нет"})`);
+        setMessage(`✅ Товар "${data.product.title}" добавлен!`);
       } else {
         setMessage("❌ " + data.message);
       }
     } catch (error) {
       setMessage("❌ Ошибка соединения с сервером");
-      console.error(error);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function deleteProduct(productId) {
-    if (!confirm("Удалить товар?")) return;
-
-    try {
-      const response = await fetch(`http://localhost:3001/api/products/${productId}`, {
-        method: "DELETE",
-      });
-      const data = await response.json();
-
-      if (data.success) {
-        await refreshProducts();
-        setMessage("✅ Товар удалён");
-      } else {
-        setMessage("❌ " + data.message);
-      }
-    } catch (error) {
-      setMessage("❌ Ошибка соединения с сервером");
-    }
-  }
-
-  async function toggleNewStatus(productId) {
-    const product = allProducts.find(p => p.id === productId);
-    if (!product) return;
-
-    const updatedProduct = { ...product, isNew: !product.isNew };
-
-    try {
-      const response = await fetch(`http://localhost:3001/api/products/${productId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedProduct),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        await refreshProducts();
-        setMessage(`✅ Статус новинки обновлён: ${!product.isNew ? "Теперь новинка" : "Убрано из новинок"}`);
-      } else {
-        setMessage("❌ " + data.message);
-      }
-    } catch (error) {
-      setMessage("❌ Ошибка соединения с сервером");
     }
   }
 
@@ -1728,10 +1518,25 @@ function AdminPage({ allProducts, setAllProducts }) {
           <option value="Star Wars">Star Wars</option>
           <option value="Games">Games</option>
         </select>
+        
+        {/* ПОЛЕ ДЛЯ ОПИСАНИЯ */}
         <textarea
-          placeholder="Описание"
+          placeholder="Описание товара"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
+          rows="4"
+          style={{
+            width: "100%",
+            padding: "12px",
+            border: "4px solid #111",
+            borderRadius: "12px",
+            background: "#eeeeee",
+            color: "#111",
+            fontSize: "14px",
+            fontFamily: "Montserrat, sans-serif",
+            resize: "vertical",
+            boxSizing: "border-box"
+          }}
         />
 
         <label style={{ display: "flex", alignItems: "center", gap: "12px", color: "white", cursor: "pointer" }}>
@@ -1749,6 +1554,7 @@ function AdminPage({ allProducts, setAllProducts }) {
         </button>
       </form>
 
+
       {message && (
         <p className="admin-message" style={{
           padding: "12px",
@@ -1765,7 +1571,7 @@ function AdminPage({ allProducts, setAllProducts }) {
       <section className="admin-products-list">
         {allProducts.length === 0 ? (
           <p style={{ color: "#fff", fontFamily: "Press Start 2P", fontSize: "12px", textAlign: "center" }}>
-            Нет товаров. Добавьте первый!
+            {t('admin.noProducts')}
           </p>
         ) : (
           allProducts.map((product) => (
@@ -1778,7 +1584,7 @@ function AdminPage({ allProducts, setAllProducts }) {
                 fontFamily: "Press Start 2P",
                 fontSize: "8px"
               }}>
-                {product.isNew ? "⭐ НОВИНКА" : ""}
+                {product.isNew ? t('admin.newLabel') : ""}
               </span>
 
               <button
@@ -1794,7 +1600,7 @@ function AdminPage({ allProducts, setAllProducts }) {
                   fontSize: "8px",
                 }}
               >
-                {product.isNew ? "⭐ Убрать" : "Добавить в новинки"}
+                {product.isNew ? t('admin.removeFromNew') : t('admin.addToNew')}
               </button>
 
               <button
@@ -1810,7 +1616,7 @@ function AdminPage({ allProducts, setAllProducts }) {
                   fontSize: "8px",
                 }}
               >
-                Удалить
+                {t('admin.delete')}
               </button>
             </article>
           ))
@@ -1847,12 +1653,24 @@ function App() {
   }, []);
 
   function toggleFavorite(productId) {
-    if (favorites.includes(productId)) {
-      setFavorites(favorites.filter((id) => id !== productId));
-    } else {
-      setFavorites([...favorites, productId]);
+  if (favorites.includes(productId)) {
+    setFavorites(favorites.filter((id) => id !== productId));
+    // Обновляем localStorage
+    const updated = favorites.filter((id) => id !== productId);
+    localStorage.setItem('favorites', JSON.stringify(updated));
+  } else {
+    setFavorites([...favorites, productId]);
+    localStorage.setItem('favorites', JSON.stringify([...favorites, productId]));
+  }
+  const savedFavorites = localStorage.getItem('favorites');
+  if (savedFavorites) {
+    try {
+      setFavorites(JSON.parse(savedFavorites));
+    } catch (e) {
+      console.error('Ошибка загрузки избранного из localStorage');
     }
   }
+}
 
   function addToCart(productId) {
     setCart((currentCart) => {
