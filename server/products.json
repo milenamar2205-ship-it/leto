@@ -5,9 +5,12 @@
     "price": 2890,
     "category": "Фигурки",
     "universe": "Marvel",
-    "description": "Коллекционная фигурка Spider-Man",
+    "description": "Коллекционная фигурка Spider-Man в классическом костюме. Высота 25 см. Идеальный подарок для фанатов вселенной Marvel. Фигурка выполнена из высококачественного пластика с проработкой всех деталей.",
     "image": "",
-    "isNew": true
+    "images": [],
+    "isNew": true,
+    "rating": 0,
+    "reviewsCount": 0
   },
   {
     "id": 2,
@@ -15,9 +18,12 @@
     "price": 990,
     "category": "Комиксы",
     "universe": "DC",
-    "description": "Комикс Batman для коллекции",
+    "description": "Культовый комикс Batman #1. Первое появление Тёмного рыцаря. Репринтное издание с оригинальной обложкой 1939 года.",
     "image": "",
-    "isNew": false
+    "images": [],
+    "isNew": false,
+    "rating": 0,
+    "reviewsCount": 0
   },
   {
     "id": 3,
@@ -25,9 +31,12 @@
     "price": 5190,
     "category": "Фигурки",
     "universe": "Anime",
-    "description": "Аниме-фигурка Levi Ackerman",
+    "description": "Фигурка Леви Аккермана из аниме «Атака Титанов». Высота 28 см. Капитан Разведкорпуса в характерной позе с ODM-механизмом.",
     "image": "",
-    "isNew": true
+    "images": [],
+    "isNew": true,
+    "rating": 0,
+    "reviewsCount": 0
   },
   {
     "id": 4,
@@ -35,9 +44,12 @@
     "price": 750,
     "category": "Манга",
     "universe": "Anime",
-    "description": "Манга Chainsaw Man",
+    "description": "Первый том культовой манги «Человек-бензопила» от Тацуки Фудзимото.",
     "image": "",
-    "isNew": false
+    "images": [],
+    "isNew": false,
+    "rating": 0,
+    "reviewsCount": 0
   },
   {
     "id": 5,
@@ -45,9 +57,12 @@
     "price": 4490,
     "category": "Фигурки",
     "universe": "Star Wars",
-    "description": "Фигурка Darth Vader",
+    "description": "Фигурка Дарта Вейдера из вселенной Звёздных Войн. Высота 30 см. Тёмный лорд ситхов в полном облачении с световым мечом.",
     "image": "",
-    "isNew": true
+    "images": [],
+    "isNew": true,
+    "rating": 0,
+    "reviewsCount": 0
   },
   {
     "id": 6,
@@ -55,9 +70,12 @@
     "price": 1290,
     "category": "Комиксы",
     "universe": "Marvel",
-    "description": "Комикс Deadpool",
+    "description": "Сборник комиксов о Дэдпуле — самом нестандартном герое Marvel.",
     "image": "",
-    "isNew": false
+    "images": [],
+    "isNew": false,
+    "rating": 0,
+    "reviewsCount": 0
   },
   {
     "id": 7,
@@ -65,9 +83,12 @@
     "price": 1490,
     "category": "Игры",
     "universe": "Games",
-    "description": "Игра FAITH: The Unholy Trinity",
+    "description": "Хоррор-игра в стиле ретро-пиксель арт. FAITH: The Unholy Trinity — атмосферный хоррор с уникальной рисовкой.",
     "image": "",
-    "isNew": false
+    "images": [],
+    "isNew": false,
+    "rating": 0,
+    "reviewsCount": 0
   },
   {
     "id": 8,
@@ -75,9 +96,12 @@
     "price": 690,
     "category": "Мерч",
     "universe": "Games",
-    "description": "Постер по игре FAITH",
+    "description": "Качественный постер по мотивам игры FAITH. Размер А2 (42×59 см).",
     "image": "",
-    "isNew": false
+    "images": [],
+    "isNew": false,
+    "rating": 0,
+    "reviewsCount": 0
   },
   {
     "id": 9,
@@ -85,18 +109,11 @@
     "price": 2590,
     "category": "Фигурки",
     "universe": "Games",
-    "description": "Фигурка персонажа из FAITH",
+    "description": "Коллекционная фигурка главного героя из игры FAITH. Высота 22 см.",
     "image": "",
-    "isNew": false
-  },
-  {
-    "id": 10,
-    "title": "12",
-    "price": 12,
-    "category": "Фигурки",
-    "universe": "Marvel",
-    "description": "12",
-    "image": "",
-    "isNew": true
+    "images": [],
+    "isNew": false,
+    "rating": 0,
+    "reviewsCount": 0
   }
 ]
