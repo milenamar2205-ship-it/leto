@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite, favorites }) {
+function ProductCard({ product, onClose, currentUser, setCurrentUser, addToCart, toggleFavorite, favorites }) {
   const [reviews, setReviews] = useState([]);
   const [newReview, setNewReview] = useState('');
   const [newRating, setNewRating] = useState(5);
@@ -12,9 +12,13 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
   const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
-    setIsFavorite(favorites.includes(product.id));
-    fetchReviews();
-  }, [product.id, favorites]);
+    if (product && favorites) {
+      setIsFavorite(favorites.includes(product.id));
+    }
+    if (product) {
+      fetchReviews();
+    }
+  }, [product, favorites]);
 
   async function fetchReviews() {
     try {
@@ -40,13 +44,14 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
       }
     } catch (error) {
       console.error('Ошибка загрузки отзывов:', error);
-      setReviewMessage('❌ Ошибка загрузки отзывов. Проверьте сервер.');
+      setReviewMessage('❌ Ошибка загрузки отзывов');
       setTimeout(() => setReviewMessage(''), 3000);
     }
   }
 
   async function handleSubmitReview(e) {
     e.preventDefault();
+    e.stopPropagation();
     
     if (!currentUser) {
       setReviewMessage('⚠️ Чтобы оставить отзыв, войдите в аккаунт!');
@@ -73,31 +78,43 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
           userId: currentUser.id,
           userName: currentUser.nickname || currentUser.login,
           rating: newRating,
-          text: newReview,
+          text: newReview.trim(),
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setReviewMessage('✅ Отзыв добавлен!');
+        setReviewMessage('✅ Отзыв добавлен! +50 монет 🪙');
         setNewReview('');
+        setNewRating(5);
         await fetchReviews();
+        
+        if (data.coins !== undefined && setCurrentUser) {
+          const updatedUser = { ...currentUser, coins: data.coins };
+          setCurrentUser(updatedUser);
+        }
+        
         setTimeout(() => setReviewMessage(''), 3000);
       } else {
         setReviewMessage('❌ ' + data.message);
         setTimeout(() => setReviewMessage(''), 3000);
       }
     } catch (error) {
-      console.error('Ошибка при отправке отзыва:', error);
-      setReviewMessage('❌ Ошибка соединения с сервером. Проверьте, запущен ли сервер на порту 3001');
+      console.error('❌ Ошибка при отправке отзыва:', error);
+      setReviewMessage('❌ Ошибка соединения с сервером');
       setTimeout(() => setReviewMessage(''), 5000);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleToggleFavorite() {
+  const handleToggleFavorite = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (!currentUser) {
       setReviewMessage('⚠️ Войдите в аккаунт, чтобы добавить в избранное!');
       setTimeout(() => setReviewMessage(''), 3000);
@@ -106,6 +123,7 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
 
     try {
       const isCurrentlyFavorite = favorites.includes(product.id);
+      
       const url = 'http://localhost:3001/api/favorites';
       const method = isCurrentlyFavorite ? 'DELETE' : 'POST';
       
@@ -121,8 +139,10 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
       });
       
       const data = await response.json();
+      
       if (data.success) {
         toggleFavorite(product.id);
+        setIsFavorite(!isCurrentlyFavorite);
         setReviewMessage(isCurrentlyFavorite ? '✅ Удалено из избранного' : '✅ Добавлено в избранное');
         setTimeout(() => setReviewMessage(''), 2000);
       } else {
@@ -130,22 +150,28 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
         setTimeout(() => setReviewMessage(''), 3000);
       }
     } catch (error) {
-      console.error('Ошибка при работе с избранным:', error);
-      setReviewMessage('❌ Ошибка сервера. Проверьте, запущен ли сервер на порту 3001');
+      console.error('❌ Ошибка при работе с избранным:', error);
+      setReviewMessage('❌ Ошибка сервера');
       setTimeout(() => setReviewMessage(''), 3000);
     }
-  }
+  };
 
-  function handleAddToCart() {
+  const handleAddToCart = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (!currentUser) {
       setReviewMessage('⚠️ Войдите в аккаунт, чтобы добавить в корзину!');
       setTimeout(() => setReviewMessage(''), 3000);
       return;
     }
+    
     addToCart(product.id);
     setReviewMessage('✅ Товар добавлен в корзину!');
     setTimeout(() => setReviewMessage(''), 2000);
-  }
+  };
 
   function renderStars(rating) {
     const fullStars = Math.floor(rating);
@@ -159,10 +185,34 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
     }
   }
 
+  function handleStarClick(star) {
+    if (!currentUser) {
+      setReviewMessage('⚠️ Войдите в аккаунт, чтобы оценить товар!');
+      setTimeout(() => setReviewMessage(''), 3000);
+      return;
+    }
+    setNewRating(star);
+  }
+
+  function handleTextChange(e) {
+    e.stopPropagation();
+    setNewReview(e.target.value);
+  }
+
+  if (!product) return null;
+
   return (
     <div className="product-modal-overlay" onClick={handleOverlayClick}>
       <div className="product-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕</button>
+        <button 
+          className="modal-close" 
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            onClose(); 
+          }}
+        >
+          ✕
+        </button>
 
         <div className="modal-content">
           <div className="modal-image">
@@ -189,12 +239,17 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
               <button 
                 className={`modal-favorite ${isFavorite ? 'active' : ''}`}
                 onClick={handleToggleFavorite}
+                type="button"
               >
                 {isFavorite ? '♥' : '♡'}
                 <span>{isFavorite ? 'В избранном' : 'В избранное'}</span>
               </button>
 
-              <button className="modal-cart" onClick={handleAddToCart}>
+              <button 
+                className="modal-cart" 
+                onClick={handleAddToCart}
+                type="button"
+              >
                 🛒 В корзину
               </button>
             </div>
@@ -212,7 +267,11 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
                           key={star}
                           type="button"
                           className={`star-btn ${star <= newRating ? 'active' : ''}`}
-                          onClick={() => setNewRating(star)}
+                          onClick={(e) => { 
+                            e.preventDefault(); 
+                            e.stopPropagation(); 
+                            handleStarClick(star); 
+                          }}
                         >
                           ★
                         </button>
@@ -222,8 +281,10 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
                   <textarea
                     placeholder="Напишите ваш отзыв..."
                     value={newReview}
-                    onChange={(e) => setNewReview(e.target.value)}
+                    onChange={handleTextChange}
+                    onClick={(e) => e.stopPropagation()}
                     rows="3"
+                    disabled={loading}
                   />
                   <button type="submit" disabled={loading}>
                     {loading ? 'Отправка...' : 'Отправить отзыв'}
@@ -249,7 +310,6 @@ function ProductCard({ product, onClose, currentUser, addToCart, toggleFavorite,
                     <div className="review-item" key={review.id}>
                       <div className="review-header">
                         <strong>{review.userName}</strong>
-                        <span className="review-stars">{renderStars(review.rating)}</span>
                         <span className="review-date">
                           {new Date(review.date).toLocaleDateString('ru-RU')}
                         </span>
