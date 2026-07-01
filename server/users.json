@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "id": 1,
+    "login": "DayDear12",
+    "password": "$2a$10$Yv5yf4ePY8Sv1jGMqmF5i.eq060U1aUqUNYKj4eR/Rbr3t6FQTTGi",
+    "email": "milenamar@bk.ru",
+    "nickname": "DayDear12_1",
+    "avatar": "",
+    "favorites": [
+      1,
+      3,
+      5
+    ],
+    "registeredAt": "2026-07-01T05:32:28.302Z",
+    "coins": 0
+  }
+]
