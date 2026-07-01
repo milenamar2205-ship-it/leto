@@ -1,1 +1,47 @@
-[]
+[
+  {
+    "id": 1,
+    "productId": 3,
+    "userId": 1,
+    "userName": "DayDear12_1",
+    "rating": 5,
+    "text": "Отличная фигурка! Качество просто супер. Рекомендую всем фанатам Атаки Титанов.",
+    "date": "2026-06-30T12:15:00.000Z"
+  },
+  {
+    "id": 2,
+    "productId": 3,
+    "userId": 2,
+    "userName": "AnimeFan_2",
+    "rating": 4,
+    "text": "Хорошая фигурка, но цена кусается. В остальном всё отлично.",
+    "date": "2026-06-29T10:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "productId": 1,
+    "userId": 1,
+    "userName": "DayDear12_1",
+    "rating": 5,
+    "text": "Спайдермен просто огонь! Детализация на высоте.",
+    "date": "2026-06-28T14:20:00.000Z"
+  },
+  {
+    "id": 4,
+    "productId": 5,
+    "userId": 1,
+    "userName": "DayDear12_1",
+    "rating": 5,
+    "text": "Good",
+    "date": "2026-07-01T06:17:41.047Z"
+  },
+  {
+    "id": 5,
+    "productId": 6,
+    "userId": 1,
+    "userName": "DayDear12_1",
+    "rating": 5,
+    "text": "Cool",
+    "date": "2026-07-01T07:19:38.152Z"
+  }
+]
