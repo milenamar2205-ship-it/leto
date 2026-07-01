@@ -4023,3 +4023,348 @@ button {
     padding: 2px 6px;
   }
 }
+
+/* SUPPORT CHAT */
+
+.support-float-btn {
+  position: fixed;
+  right: 26px;
+  bottom: 26px;
+  z-index: 999;
+  width: 76px;
+  height: 76px;
+  border: 5px solid #14ff42;
+  border-radius: 50%;
+  background: #842bff;
+  color: #ffffff;
+  font-size: 30px;
+  cursor: pointer;
+  box-shadow:
+    0 0 20px #14ff42,
+    6px 6px 0 #111;
+}
+
+.support-badge,
+.admin-chat-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 26px;
+  height: 26px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #ff2d55;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 11px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #ffffff;
+}
+
+.support-window {
+  position: fixed;
+  right: 26px;
+  bottom: 116px;
+  z-index: 1000;
+  width: min(430px, calc(100vw - 30px));
+  height: 620px;
+  display: flex;
+  flex-direction: column;
+  border: 5px solid #111;
+  border-radius: 24px;
+  background: #111111;
+  color: white;
+  overflow: hidden;
+  box-shadow:
+    0 0 30px #842bff,
+    8px 8px 0 #000;
+}
+
+.support-header {
+  padding: 18px;
+  background: #2d2d2d;
+  border-bottom: 4px solid #14ff42;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.support-header h2 {
+  margin: 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: 18px;
+  text-shadow: 0 0 10px #842bff;
+}
+
+.support-header p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.support-header button {
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 34px;
+  cursor: pointer;
+}
+
+.support-messages,
+.support-admin-messages {
+  flex: 1;
+  padding: 18px;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at top, rgba(132, 43, 255, 0.18), transparent 35%),
+    #0d0d0d;
+}
+
+.support-message,
+.admin-message-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.support-message.user,
+.admin-message-row.admin {
+  justify-content: flex-end;
+}
+
+.support-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #ff8c00;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.support-bubble {
+  max-width: 76%;
+  padding: 14px;
+  border-radius: 18px;
+  background: #2d2d2d;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  line-height: 1.5;
+}
+
+.support-message.user .support-bubble,
+.admin-message-row.admin .support-bubble {
+  background: #842bff;
+  border-color: #14ff42;
+}
+
+.support-bubble p {
+  margin: 0 0 8px;
+}
+
+.support-bubble a {
+  color: #14ff42;
+  word-break: break-word;
+}
+
+.support-bubble span {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  opacity: 0.6;
+  text-align: right;
+}
+
+.support-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: #2d2d2d;
+  border-top: 4px solid #111;
+}
+
+.support-input-row input[type="text"],
+.support-input-row > input {
+  flex: 1;
+  padding: 14px;
+  border: 3px solid #111;
+  border-radius: 14px;
+  background: #eeeeee;
+  color: #111111;
+  font-size: 15px;
+}
+
+.support-input-row button,
+.support-file-btn {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #14ff42;
+  border-radius: 12px;
+  background: #842bff;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.support-file-btn input {
+  display: none;
+}
+
+.support-file-preview {
+  padding: 10px 14px;
+  background: #191919;
+  border-top: 2px solid #14ff42;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.support-file-preview button {
+  border: none;
+  background: transparent;
+  color: #ff2d55;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* ADMIN SUPPORT PAGE */
+
+.support-admin-page {
+  min-height: calc(100vh - 72px);
+  padding: 42px 5vw 100px;
+  background: #3457e8;
+  color: #ffffff;
+}
+
+.support-admin-page h1 {
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(28px, 4vw, 52px);
+  margin: 0 0 34px;
+  text-shadow: 0 0 14px #842bff;
+}
+
+.support-admin-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 28px;
+}
+
+.support-chat-list,
+.support-admin-chat {
+  border: 5px solid #111;
+  border-radius: 24px;
+  background: #2d2d2d;
+  box-shadow: 8px 8px 0 #111;
+  overflow: hidden;
+}
+
+.support-chat-list {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.support-chat-list-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  position: relative;
+}
+
+.support-chat-list-item > button:first-child {
+  position: relative;
+  padding: 14px;
+  border: 3px solid #111;
+  border-radius: 14px;
+  background: #eeeeee;
+  color: #111111;
+  text-align: left;
+  cursor: pointer;
+}
+
+.support-chat-list-item strong,
+.support-chat-list-item span,
+.support-chat-list-item em,
+.support-chat-list-item small {
+  display: block;
+}
+
+.support-chat-list-item em {
+  margin-top: 8px;
+  color: #842bff;
+  font-style: normal;
+  font-weight: bold;
+}
+
+.support-chat-list-item small {
+  margin-top: 8px;
+  color: #ff8c00;
+}
+
+.delete-chat-btn {
+  border: 3px solid #ff2d55;
+  border-radius: 12px;
+  background: #111;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.support-admin-chat {
+  min-height: 640px;
+  display: flex;
+  flex-direction: column;
+}
+
+.support-admin-empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  font-family: "Press Start 2P", monospace;
+  color: #14ff42;
+}
+
+.support-admin-chat-header {
+  padding: 18px;
+  border-bottom: 4px solid #14ff42;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+.support-admin-chat-header h2 {
+  margin: 0;
+  font-family: "Press Start 2P", monospace;
+}
+
+.support-admin-chat-header p {
+  margin: 8px 0 0;
+  opacity: 0.8;
+}
+
+.support-admin-chat-header button {
+  padding: 12px 16px;
+  border: 3px solid #ff2d55;
+  border-radius: 12px;
+  background: #111;
+  color: white;
+  cursor: pointer;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+}
+
+@media (max-width: 900px) {
+  .support-admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .support-window {
+    right: 15px;
+    bottom: 100px;
+    height: 560px;
+  }
+}
