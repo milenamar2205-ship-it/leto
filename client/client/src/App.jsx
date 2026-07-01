@@ -11,9 +11,46 @@ import animeLogo from "./assets/anime.png";
 import gamesLogo from "./assets/games.png";
 import aboutMascot from "./assets/logo3.png";
 import ProductCard from "./components/ProductCard";
+import CoinsShop from "./components/CoinsShop";
 
+// ===== CONTEXT ДЛЯ РЕЖИМА СЛАБОВИДЯЩИХ =====
+import { createContext, useContext } from 'react';
+
+const VisionContext = createContext();
+
+export function VisionProvider({ children }) {
+  const [isVisionMode, setIsVisionMode] = useState(() => {
+    return localStorage.getItem('visionMode') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('visionMode', isVisionMode);
+    if (isVisionMode) {
+      document.body.classList.add('vision-mode');
+    } else {
+      document.body.classList.remove('vision-mode');
+    }
+  }, [isVisionMode]);
+
+  const toggleVisionMode = () => {
+    setIsVisionMode(prev => !prev);
+  };
+
+  return (
+    <VisionContext.Provider value={{ isVisionMode, toggleVisionMode }}>
+      {children}
+    </VisionContext.Provider>
+  );
+}
+
+export function useVision() {
+  return useContext(VisionContext);
+}
+
+// ===== HEADER =====
 function Header({ setPage, currentUser, isAdmin }) {
   const { t, i18n } = useTranslation();
+  const { isVisionMode, toggleVisionMode } = useVision();
 
   function changeLanguage(lang) {
     i18n.changeLanguage(lang);
@@ -33,13 +70,21 @@ function Header({ setPage, currentUser, isAdmin }) {
         <button onClick={() => setPage("about")}>{t('header.about')}</button>
         {isAdmin && (
           <>
-            <button onClick={() => setPage("admin")}>Админ</button>
+            <button onClick={() => setPage("admin")}>{t('header.admin')}</button>
             <button onClick={() => setPage("support-admin")}>Чаты</button>
           </>
         )}
       </nav>
 
       <div className="header-actions">
+        <button 
+          className={`header-icon vision-toggle ${isVisionMode ? 'active' : ''}`}
+          onClick={toggleVisionMode}
+          title={t('header.visionMode')}
+        >
+          
+        </button>
+
         <div className="language-switcher">
           <button 
             onClick={() => changeLanguage('ru')}
@@ -56,15 +101,22 @@ function Header({ setPage, currentUser, isAdmin }) {
         </div>
 
         <button className="header-icon" onClick={() => setPage("favorites")}>
-          ♡
+          ❤
         </button>
         <button className="header-icon" onClick={() => setPage("cart")}>
           🛒
         </button>
+        
+        {currentUser && (
+          <button className="header-coins-btn" onClick={() => setPage("coins")}>
+            🪙 <span className="coins-count">{currentUser.coins || 0}</span>
+          </button>
+        )}
+
         {currentUser ? (
           <button className="profile-header-btn" onClick={() => setPage("profile")}>
             {currentUser.avatar ? (
-              <img src={currentUser.avatar} alt="Профиль" />
+              <img src={currentUser.avatar} alt={t('header.profile')} />
             ) : (
               <span>
                 {(currentUser.nickname || currentUser.login || "U").charAt(0).toUpperCase()}
@@ -81,197 +133,8 @@ function Header({ setPage, currentUser, isAdmin }) {
   );
 }
 
-function HomePage({
-  setPage,
-  setSelectedCategoryFromHome,
-  addToCart,
-  allProducts,
-  currentUser,
-  favorites,
-  toggleFavorite,
-}) {
-  const { t } = useTranslation();
-  const [catalogOpen, setCatalogOpen] = useState(false);
-  const [slide, setSlide] = useState(0);
-  const [notification, setNotification] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
-  const newProducts = allProducts.filter(product => product.isNew === true);
-  const visibleProducts = newProducts.length > 0 ? newProducts.slice(slide, slide + 5) : [];
-
-  function nextSlide() {
-    if (newProducts.length === 0) return;
-    setSlide((current) => {
-      if (current + 5 >= newProducts.length) return 0;
-      return current + 1;
-    });
-  }
-
-  function prevSlide() {
-    if (newProducts.length === 0) return;
-    setSlide((current) => {
-      if (current === 0) return Math.max(newProducts.length - 5, 0);
-      return current - 1;
-    });
-  }
-
-  function openCategory(category) {
-    setSelectedCategoryFromHome(category);
-    setCatalogOpen(false);
-    setPage("products");
-  }
-
-  function showNotification(message, type = "success") {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 2500);
-  }
-
-  function openProduct(product) {
-    setSelectedProduct(product);
-  }
-
-  function closeProduct() {
-    setSelectedProduct(null);
-  }
-
-  function handleAddToCart(productId) {
-    if (!currentUser) {
-      showNotification(t('notifications.loginRequired'), "error");
-      setTimeout(() => setPage("login"), 1500);
-      return;
-    }
-    addToCart(productId);
-    const product = allProducts.find(p => p.id === productId);
-    showNotification(t('notifications.addedToCart', { title: product?.title || "Товар" }), "success");
-  }
-
-  function handleToggleFavorite(productId) {
-    if (!currentUser) {
-      showNotification(t('notifications.favoriteLoginRequired'), "error");
-      setTimeout(() => setPage("login"), 1500);
-      return;
-    }
-    const isFavorite = favorites.includes(productId);
-    toggleFavorite(productId);
-    const product = allProducts.find(p => p.id === productId);
-    showNotification(
-      isFavorite 
-        ? t('notifications.removedFromFavorites', { title: product?.title || "Товар" })
-        : t('notifications.addedToFavorites', { title: product?.title || "Товар" }),
-      "success"
-    );
-  }
-
-  return (
-    <main className="home">
-      {notification && (
-        <div className={`notification ${notification.type}`}>
-          {notification.message}
-        </div>
-      )}
-
-      <section className="products-section mario-bg">
-        <div className="top-row">
-          <div className="small-photo-placeholder">
-            <img src={mainLogo} alt="FunUniverse" />
-          </div>
-        </div>
-
-        {catalogOpen && (
-          <aside className="catalog-panel" onMouseLeave={() => setCatalogOpen(false)}>
-            <h3>{t('home.catalog')}</h3>
-            <button onClick={() => openCategory("Фигурки")}>{t('home.categories.figurines')}</button>
-            <button onClick={() => openCategory("Комиксы")}>{t('home.categories.comics')}</button>
-            <button onClick={() => openCategory("Манга")}>{t('home.categories.manga')}</button>
-            <button onClick={() => openCategory("Игры")}>{t('home.categories.games')}</button>
-          </aside>
-        )}
-
-        <div className="section-heading-row">
-          <h2 className="section-title">{t('home.new')}</h2>
-          <button
-            className="catalog-btn"
-            onMouseEnter={() => setCatalogOpen(true)}
-            onClick={() => setCatalogOpen((value) => !value)}
-          >
-            {t('home.catalog')}
-          </button>
-        </div>
-
-        <div className="slider">
-          {newProducts.length > 0 ? (
-            <>
-              <button className="slider-arrow left" onClick={prevSlide}>←</button>
-              <div className="product-list">
-                {visibleProducts.map((product, index) => (
-                  <article className="product-card" key={`${product.id}-${index}`}>
-                    <button
-                      className={`favorite-btn ${favorites.includes(product.id) ? "active" : ""}`}
-                      onClick={() => handleToggleFavorite(product.id)}
-                      style={{
-                        position: "absolute",
-                        top: "4px",
-                        right: "4px",
-                        zIndex: "3",
-                        border: "none",
-                        background: "transparent",
-                        color: favorites.includes(product.id) ? "#ff3b8d" : "#ffffff",
-                        fontSize: "24px",
-                        cursor: "pointer",
-                        textShadow: favorites.includes(product.id) 
-                          ? "2px 2px 0 #000, 0 0 12px #ff3b8d" 
-                          : "0 0 8px #8b2cff",
-                        width: "36px",
-                        height: "36px",
-                        display: "grid",
-                        placeItems: "center"
-                      }}
-                    >
-                      {favorites.includes(product.id) ? "♥" : "♡"}
-                    </button>
-                    <div className="product-image" onClick={() => openProduct(product)} style={{ cursor: 'pointer' }}>
-                      IMG
-                    </div>
-                    <p className="product-desc" onClick={() => openProduct(product)} style={{ cursor: 'pointer' }}>
-                      {product.title}
-                    </p>
-                    <p className="product-price">{product.price.toLocaleString("ru-RU")} ₽</p>
-                    <button className="cart-btn" onClick={() => handleAddToCart(product.id)}>
-                      🛒
-                    </button>
-                  </article>
-                ))}
-              </div>
-              <button className="slider-arrow right" onClick={nextSlide}>→</button>
-            </>
-          ) : null}
-        </div>
-
-        <div className="pixel-bg-placeholder"></div>
-      </section>
-
-      <DinoRunner />
-
-      <section className="about-section" id="about-project">
-        <h2>{t('home.about.title')}</h2>
-        <p>{t('home.about.text')}</p>
-      </section>
-
-      {selectedProduct && (
-        <ProductCard
-          product={selectedProduct}
-          onClose={closeProduct}
-          currentUser={currentUser}
-          addToCart={addToCart}
-          toggleFavorite={toggleFavorite}
-          favorites={favorites}
-        />
-      )}
-    </main>
-  );
-}
-
-function DinoRunner() {
+// ===== DINO RUNNER =====
+function DinoRunner({ currentUser, setCurrentUser }) {
   const { t } = useTranslation();
   const canvasRef = useRef(null);
   const overlayRef = useRef(null);
@@ -331,15 +194,54 @@ function DinoRunner() {
       updateScore();
     }
 
-    function endGame() {
+    async function endGame() {
       gameState = "over";
-      if (score > hiScore) {
-        hiScore = Math.floor(score);
+      const currentScore = Math.floor(score);
+      
+      if (currentScore > hiScore) {
+        hiScore = currentScore;
         localStorage.setItem("dinoHiScore", hiScore);
         hiScoreEl.textContent = String(hiScore).padStart(5, "0");
       }
-      finalScoreEl.textContent = Math.floor(score);
+      
+      finalScoreEl.textContent = currentScore;
       gameOverEl.style.display = "flex";
+      
+      const coinsEarned = Math.floor(currentScore / 100) * 50;
+      
+      if (coinsEarned > 0 && currentUser && currentUser.id) {
+        try {
+          const response = await fetch("http://localhost:3001/api/coins/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: currentUser.id,
+              amount: coinsEarned,
+              reason: `Dino Runner: ${currentScore} очков`
+            }),
+          });
+          
+          const data = await response.json();
+          
+          if (data.success && setCurrentUser) {
+            const updatedUser = { ...currentUser, coins: data.coins };
+            setCurrentUser(updatedUser);
+            
+            const coinDisplay = document.createElement('div');
+            coinDisplay.className = 'dino-score-coins';
+            coinDisplay.textContent = `+${coinsEarned} 🪙`;
+            document.body.appendChild(coinDisplay);
+            coinDisplay.style.display = 'block';
+            
+            setTimeout(() => {
+              coinDisplay.style.display = 'none';
+              document.body.removeChild(coinDisplay);
+            }, 3000);
+          }
+        } catch (error) {
+          console.error("❌ Ошибка начисления монет:", error);
+        }
+      }
     }
 
     function jump() {
@@ -456,7 +358,7 @@ function DinoRunner() {
       overlay.removeEventListener("click", jump);
       gameOverEl.removeEventListener("click", jump);
     };
-  }, []);
+  }, [currentUser, setCurrentUser]);
 
   return (
     <section className="dino-section">
@@ -491,6 +393,200 @@ function DinoRunner() {
   );
 }
 
+// ===== HOMEPAGE =====
+function HomePage({
+  setPage,
+  setSelectedCategoryFromHome,
+  addToCart,
+  allProducts,
+  currentUser,
+  setCurrentUser,
+  favorites,
+  toggleFavorite,
+}) {
+  const { t } = useTranslation();
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [slide, setSlide] = useState(0);
+  const [notification, setNotification] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const newProducts = allProducts.filter(product => product.isNew === true);
+  const visibleProducts = newProducts.length > 0 ? newProducts.slice(slide, slide + 5) : [];
+
+  function nextSlide() {
+    if (newProducts.length === 0) return;
+    setSlide((current) => {
+      if (current + 5 >= newProducts.length) return 0;
+      return current + 1;
+    });
+  }
+
+  function prevSlide() {
+    if (newProducts.length === 0) return;
+    setSlide((current) => {
+      if (current === 0) return Math.max(newProducts.length - 5, 0);
+      return current - 1;
+    });
+  }
+
+  function openCategory(category) {
+    setSelectedCategoryFromHome(category);
+    setCatalogOpen(false);
+    setPage("products");
+  }
+
+  function showNotification(message, type = "success") {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 2500);
+  }
+
+  function openProduct(product) {
+    setSelectedProduct(product);
+  }
+
+  function closeProduct() {
+    setSelectedProduct(null);
+  }
+
+  function handleAddToCart(productId) {
+    if (!currentUser) {
+      showNotification(t('notifications.loginRequired'), "error");
+      setTimeout(() => setPage("login"), 1500);
+      return;
+    }
+    addToCart(productId);
+    const product = allProducts.find(p => p.id === productId);
+    showNotification(t('notifications.addedToCart', { title: product?.title || t('notifications.product') }), "success");
+  }
+
+  function handleToggleFavorite(productId) {
+    if (!currentUser) {
+      showNotification(t('notifications.favoriteLoginRequired'), "error");
+      setTimeout(() => setPage("login"), 1500);
+      return;
+    }
+    const isFavorite = favorites.includes(productId);
+    toggleFavorite(productId);
+    const product = allProducts.find(p => p.id === productId);
+    showNotification(
+      isFavorite 
+        ? t('notifications.removedFromFavorites', { title: product?.title || t('notifications.product') })
+        : t('notifications.addedToFavorites', { title: product?.title || t('notifications.product') }),
+      "success"
+    );
+  }
+
+  return (
+    <main className="home">
+      {notification && (
+        <div className={`notification ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+
+      <section className="products-section mario-bg">
+        <div className="top-row">
+          <div className="small-photo-placeholder">
+            <img src={mainLogo} alt="FunUniverse" />
+          </div>
+        </div>
+
+        {catalogOpen && (
+          <aside className="catalog-panel" onMouseLeave={() => setCatalogOpen(false)}>
+            <h3>{t('home.catalog')}</h3>
+            <button onClick={() => openCategory("Фигурки")}>{t('home.categories.figurines')}</button>
+            <button onClick={() => openCategory("Комиксы")}>{t('home.categories.comics')}</button>
+            <button onClick={() => openCategory("Манга")}>{t('home.categories.manga')}</button>
+            <button onClick={() => openCategory("Игры")}>{t('home.categories.games')}</button>
+          </aside>
+        )}
+
+        <div className="section-heading-row">
+          <h2 className="section-title">{t('home.new')}</h2>
+          <button
+            className="catalog-btn"
+            onMouseEnter={() => setCatalogOpen(true)}
+            onClick={() => setCatalogOpen((value) => !value)}
+          >
+            {t('home.catalog')}
+          </button>
+        </div>
+
+        <div className="slider">
+          {newProducts.length > 0 ? (
+            <>
+              <button className="slider-arrow left" onClick={prevSlide}>←</button>
+              <div className="product-list">
+                {visibleProducts.map((product, index) => (
+                  <article className="product-card" key={`${product.id}-${index}`}>
+                    <button
+                      className={`favorite-btn ${favorites.includes(product.id) ? "active" : ""}`}
+                      onClick={() => handleToggleFavorite(product.id)}
+                      style={{
+                        position: "absolute",
+                        top: "4px",
+                        right: "4px",
+                        zIndex: "3",
+                        border: "none",
+                        background: "transparent",
+                        color: favorites.includes(product.id) ? "#ff3b8d" : "#ffffff",
+                        fontSize: "24px",
+                        cursor: "pointer",
+                        textShadow: favorites.includes(product.id) 
+                          ? "2px 2px 0 #000, 0 0 12px #ff3b8d" 
+                          : "0 0 8px #8b2cff",
+                        width: "36px",
+                        height: "36px",
+                        display: "grid",
+                        placeItems: "center"
+                      }}
+                    >
+                      {favorites.includes(product.id) ? "♥" : "♡"}
+                    </button>
+                    <div className="product-image" onClick={() => openProduct(product)} style={{ cursor: 'pointer' }}>
+                      IMG
+                    </div>
+                    <p className="product-desc" onClick={() => openProduct(product)} style={{ cursor: 'pointer' }}>
+                      {product.title}
+                    </p>
+                    <p className="product-price">{product.price.toLocaleString("ru-RU")} ₽</p>
+                    <button className="cart-btn" onClick={() => handleAddToCart(product.id)}>
+                      🛒
+                    </button>
+                  </article>
+                ))}
+              </div>
+              <button className="slider-arrow right" onClick={nextSlide}>→</button>
+            </>
+          ) : null}
+        </div>
+
+        <div className="pixel-bg-placeholder"></div>
+      </section>
+
+      <DinoRunner currentUser={currentUser} setCurrentUser={setCurrentUser} />
+
+      <section className="about-section" id="about-project">
+        <h2>{t('home.about.title')}</h2>
+        <p>{t('home.about.text')}</p>
+      </section>
+
+      {selectedProduct && (
+        <ProductCard
+          product={selectedProduct}
+          onClose={closeProduct}
+          currentUser={currentUser}
+          setCurrentUser={setCurrentUser}
+          addToCart={addToCart}
+          toggleFavorite={toggleFavorite}
+          favorites={favorites}
+        />
+      )}
+    </main>
+  );
+}
+
+// ===== LOGIN PAGE =====
 function LoginPage({ currentUser, setCurrentUser }) {
   const { t } = useTranslation();
   const [mode, setMode] = useState("login");
@@ -514,13 +610,11 @@ function LoginPage({ currentUser, setCurrentUser }) {
       setMessage(data.message);
       setSuccess(data.success);
       if (data.success && mode === "login") {
-        // Убеждаемся, что favorites загружены
         const userWithFavorites = {
           ...data.user,
           favorites: data.user.favorites || []
         };
         setCurrentUser(userWithFavorites);
-        // Сохраняем favorites в localStorage для быстрого доступа
         localStorage.setItem('favorites', JSON.stringify(userWithFavorites.favorites || []));
       }
       if (data.success && mode === "register") {
@@ -530,7 +624,7 @@ function LoginPage({ currentUser, setCurrentUser }) {
         setSuccess(true);
       }
     } catch (error) {
-      setMessage("Ошибка соединения с сервером");
+      setMessage(t('login.connectionError'));
       setSuccess(false);
     }
   }
@@ -590,8 +684,10 @@ function LoginPage({ currentUser, setCurrentUser }) {
   );
 }
 
+// ===== PRODUCTS PAGE =====
 function ProductsPage({
   currentUser,
+  setCurrentUser,
   favorites,
   toggleFavorite,
   setPage,
@@ -811,6 +907,7 @@ function ProductsPage({
           product={selectedProduct}
           onClose={closeProduct}
           currentUser={currentUser}
+          setCurrentUser={setCurrentUser}
           addToCart={addToCart}
           toggleFavorite={toggleFavorite}
           favorites={favorites}
@@ -820,6 +917,7 @@ function ProductsPage({
   );
 }
 
+// ===== FOOTER =====
 function Footer({ setPage }) {
   const { t } = useTranslation();
 
@@ -871,6 +969,7 @@ function Footer({ setPage }) {
   );
 }
 
+// ===== FAVORITES PAGE =====
 function FavoritesPage({
   currentUser,
   favorites,
@@ -918,6 +1017,7 @@ function FavoritesPage({
   );
 }
 
+// ===== CART PAGE =====
 function CartPage({
   currentUser,
   cart,
@@ -928,8 +1028,36 @@ function CartPage({
 }) {
   const { t } = useTranslation();
   const [promoCode, setPromoCode] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState(null);
   const [promoMessage, setPromoMessage] = useState("");
+  const [userPromos, setUserPromos] = useState([]);
+  const [showPromoSelect, setShowPromoSelect] = useState(false);
+  const [loadingPromos, setLoadingPromos] = useState(false);
+
+  // Загружаем промокоды пользователя
+  useEffect(() => {
+    if (currentUser) {
+      loadUserPromos();
+    }
+  }, [currentUser]);
+
+  async function loadUserPromos() {
+    if (!currentUser) return;
+    
+    setLoadingPromos(true);
+    try {
+      const response = await fetch(`http://localhost:3001/api/promos/user/${currentUser.id}`);
+      const data = await response.json();
+      if (data.success) {
+        const available = data.promos.filter(p => !p.used);
+        setUserPromos(available);
+      }
+    } catch (error) {
+      console.error("Ошибка загрузки промокодов:", error);
+    } finally {
+      setLoadingPromos(false);
+    }
+  }
 
   const cartProducts = cart
     .map((cartItem) => {
@@ -940,19 +1068,104 @@ function CartPage({
     .filter(Boolean);
 
   const subtotal = cartProducts.reduce((sum, product) => sum + product.price * product.quantity, 0);
-  const promoDiscounts = { RETRO5: 0.05, RETRO10: 0.1, RETRO15: 0.15 };
-  const discount = appliedPromo ? subtotal * promoDiscounts[appliedPromo] : 0;
+  
+  // Все доступные промокоды (казино + купленные)
+  const PROMO_DISCOUNTS = {
+    RETRO5: 0.05,
+    RETRO10: 0.10,
+    RETRO15: 0.15,
+    COINS5: 0.05,
+    COINS10: 0.10,
+    COINS30: 0.30
+  };
+
+  const discount = appliedPromo ? subtotal * appliedPromo.discount : 0;
   const total = subtotal - discount;
 
-  function applyPromo() {
+  // Применить промокод (ручной ввод)
+  async function applyPromo() {
     const normalizedPromo = promoCode.trim().toUpperCase();
-    if (promoDiscounts[normalizedPromo]) {
-      setAppliedPromo(normalizedPromo);
-      setPromoMessage(`Промокод применён: скидка ${promoDiscounts[normalizedPromo] * 100}%`);
-    } else {
-      setAppliedPromo("");
-      setPromoMessage("Такого промокода нет");
+    
+    if (!PROMO_DISCOUNTS[normalizedPromo]) {
+      setAppliedPromo(null);
+      setPromoMessage(t('cart.invalidPromo'));
+      return;
     }
+
+    // Проверяем, если это казино-промокод (не требует покупки)
+    if (normalizedPromo.startsWith('RETRO')) {
+      setAppliedPromo({
+        code: normalizedPromo,
+        discount: PROMO_DISCOUNTS[normalizedPromo]
+      });
+      setPromoMessage(`${t('cart.promoApplied')} ${PROMO_DISCOUNTS[normalizedPromo] * 100}%`);
+      setPromoCode("");
+      return;
+    }
+
+    // Для купленных промокодов - проверяем через API
+    try {
+      const response = await fetch("http://localhost:3001/api/promos/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          promoCode: normalizedPromo
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setAppliedPromo({
+          code: data.promoCode,
+          discount: data.discount
+        });
+        setPromoMessage(`${t('cart.promoApplied')} ${data.discount * 100}%`);
+        setPromoCode("");
+        loadUserPromos(); // Обновляем список доступных промокодов
+      } else {
+        setAppliedPromo(null);
+        setPromoMessage(data.message || t('cart.invalidPromo'));
+      }
+    } catch (error) {
+      setPromoMessage(t('cart.applyError'));
+    }
+  }
+
+  // Применить промокод из списка
+  async function applyUserPromo(promo) {
+    try {
+      const response = await fetch("http://localhost:3001/api/promos/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          promoCode: promo.promoCode
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setAppliedPromo({
+          code: data.promoCode,
+          discount: data.discount
+        });
+        setPromoMessage(`${t('cart.promoApplied')} ${data.discount * 100}%`);
+        loadUserPromos();
+        setShowPromoSelect(false);
+      } else {
+        setPromoMessage(data.message || t('cart.invalidPromo'));
+      }
+    } catch (error) {
+      setPromoMessage(t('cart.applyError'));
+    }
+  }
+
+  function removePromo() {
+    setAppliedPromo(null);
+    setPromoMessage("");
   }
 
   if (!currentUser) {
@@ -960,7 +1173,7 @@ function CartPage({
       <main className="cart-page">
         <h1>{t('cart.title')}</h1>
         <div className="empty-cart">
-          <img src={cartLogo} alt="Корзина" />
+          <img src={cartLogo} alt={t('cart.title')} />
           <p>{t('cart.empty')}</p>
           <button onClick={() => setPage("login")}>{t('cart.login')}</button>
         </div>
@@ -973,7 +1186,7 @@ function CartPage({
       <main className="cart-page">
         <h1>{t('cart.title')}</h1>
         <div className="empty-cart">
-          <img src={cartLogo} alt="Корзина" />
+          <img src={cartLogo} alt={t('cart.title')} />
           <p>{t('cart.empty')}</p>
           <button onClick={() => setPage("products")}>{t('cart.goToProducts')}</button>
         </div>
@@ -1006,14 +1219,66 @@ function CartPage({
 
         <aside className="cart-summary">
           <img className="cart-summary-logo" src={cartLogo} alt="FunUniverse" />
+          
           <div className="promo-box">
             <h2>{t('cart.promo')}</h2>
+            
+            {/* Кнопка показать доступные промокоды */}
+            {userPromos.length > 0 && (
+              <button 
+                className="show-promos-btn"
+                onClick={() => setShowPromoSelect(!showPromoSelect)}
+              >
+                {showPromoSelect ? '✕' : `📋 ${t('cart.availablePromos')} (${userPromos.length})`}
+              </button>
+            )}
+
+            {/* Список доступных промокодов */}
+            {showPromoSelect && userPromos.length > 0 && (
+              <div className="promo-list">
+                <p className="promo-list-title">{t('cart.yourPromos')}:</p>
+                {userPromos.map((promo) => (
+                  <button 
+                    key={promo.id}
+                    className="promo-item"
+                    onClick={() => applyUserPromo(promo)}
+                  >
+                    <span className="promo-code">{promo.promoCode}</span>
+                    <span className="promo-discount">-{Math.round(promo.discount * 100)}%</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="promo-row">
-              <input type="text" placeholder={t('cart.enterPromo')} value={promoCode} onChange={(event) => setPromoCode(event.target.value)} />
-              <button onClick={applyPromo}>✓</button>
+              <input 
+                type="text" 
+                placeholder={t('cart.enterPromo')} 
+                value={promoCode} 
+                onChange={(event) => setPromoCode(event.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && applyPromo()}
+              />
+              <button onClick={applyPromo}>{t('cart.apply')}</button>
             </div>
-            {promoMessage && <p>{promoMessage}</p>}
+
+            {/* Отображение применённого промокода */}
+            {appliedPromo && (
+              <div className="applied-promo">
+                <span>
+                  ✅ {t('cart.promoApplied')}: <b>{appliedPromo.code}</b> (-{Math.round(appliedPromo.discount * 100)}%)
+                </span>
+                <button className="remove-promo" onClick={removePromo}>✕</button>
+              </div>
+            )}
+
+            {promoMessage && !appliedPromo && (
+              <p className="promo-message error">{promoMessage}</p>
+            )}
+            {promoMessage && appliedPromo && (
+              <p className="promo-message success">{promoMessage}</p>
+            )}
           </div>
+
           <div className="delivery-box">
             <h2>{t('cart.delivery')}</h2>
             <p>{t('cart.deliveryText')}</p>
@@ -1025,7 +1290,11 @@ function CartPage({
           </div>
           <div className="total-box">
             <p>{t('cart.subtotal')}: {subtotal.toLocaleString("ru-RU")} ₽</p>
-            {appliedPromo && <p>{t('cart.discount')}: −{discount.toLocaleString("ru-RU")} ₽</p>}
+            {appliedPromo && (
+              <p className="discount-line">
+                {t('cart.discount')} ({appliedPromo.code}): −{discount.toLocaleString("ru-RU")} ₽
+              </p>
+            )}
             <h2>{t('cart.total')}: {total.toLocaleString("ru-RU")} ₽</h2>
             <button>{t('cart.checkout')}</button>
           </div>
@@ -1035,6 +1304,7 @@ function CartPage({
   );
 }
 
+// ===== UNIVERSES PAGE =====
 function UniversesPage({ setPage, setSelectedUniverseFromPage }) {
   const { t } = useTranslation();
   const universesList = [
@@ -1066,6 +1336,7 @@ function UniversesPage({ setPage, setSelectedUniverseFromPage }) {
   );
 }
 
+// ===== ABOUT PAGE =====
 function AboutPage() {
   const { t } = useTranslation();
   const team = [
@@ -1075,20 +1346,20 @@ function AboutPage() {
   ];
 
   const stats = [
-    { title: "Сила", value: 87, className: "green" },
-    { title: "Ловкость", value: 64, className: "cyan" },
-    { title: "Интеллект", value: 72, className: "yellow" },
-    { title: "Выносливость", value: 58, className: "pink" },
-    { title: "Удача", value: 91, className: "purple" },
+    { title: t('about.statsStrength'), value: 87, className: "green" },
+    { title: t('about.statsAgility'), value: 64, className: "cyan" },
+    { title: t('about.statsIntelligence'), value: 72, className: "yellow" },
+    { title: t('about.statsEndurance'), value: 58, className: "pink" },
+    { title: t('about.statsLuck'), value: 91, className: "purple" },
   ];
 
   const achievements = [
-    { icon: "◉", title: "Первый раз", text: "Впервые посетил наш сайт", unlocked: true },
-    { icon: "▣", title: "Знаток", text: "Нашёл страницу «О нас»", unlocked: true },
-    { icon: "☆", title: "Звезда", text: "Провёл на сайте больше минуты", unlocked: true },
-    { icon: "🔒", title: "Сокровище", text: "???", unlocked: false },
-    { icon: "🎮", title: "Непробиваемый", text: "???", unlocked: false },
-    { icon: "☆", title: "Легенда", text: "???", unlocked: false },
+    { icon: "◉", title: t('about.achievementFirst'), text: t('about.achievementFirstText'), unlocked: true },
+    { icon: "▣", title: t('about.achievementExpert'), text: t('about.achievementExpertText'), unlocked: true },
+    { icon: "☆", title: t('about.achievementStar'), text: t('about.achievementStarText'), unlocked: true },
+    { icon: "🔒", title: t('about.achievementTreasure'), text: "???", unlocked: false },
+    { icon: "🎮", title: t('about.achievementUnbreakable'), text: "???", unlocked: false },
+    { icon: "☆", title: t('about.achievementLegend'), text: "???", unlocked: false },
   ];
 
   return (
@@ -1124,7 +1395,7 @@ function AboutPage() {
 
       <section className="about-character">
         <div className="mascot-box">
-          <img src={aboutMascot} alt="Наш маскот" />
+          <img src={aboutMascot} alt={t('about.mascot')} />
           <span>{t('about.mascot')}</span>
         </div>
         <div className="stats-panel">
@@ -1163,6 +1434,7 @@ function AboutPage() {
   );
 }
 
+// ===== PROFILE PAGE =====
 function ProfilePage({
   currentUser,
   setCurrentUser,
@@ -1203,7 +1475,7 @@ function ProfilePage({
     const file = event.target.files[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      alert("Файл слишком большой");
+      alert(t('profile.fileTooBig'));
       return;
     }
     const reader = new FileReader();
@@ -1213,7 +1485,7 @@ function ProfilePage({
 
   async function saveProfile() {
     if (!currentUser || !currentUser.id) {
-      setMessage("Пользователь не авторизован");
+      setMessage(t('profile.notAuthorized'));
       return;
     }
     try {
@@ -1229,7 +1501,7 @@ function ProfilePage({
         setIsEditing(false);
       }
     } catch {
-      setMessage("Ошибка соединения с сервером");
+      setMessage(t('profile.connectionError'));
     }
   }
 
@@ -1244,7 +1516,7 @@ function ProfilePage({
           <div className="profile-avatar-block">
             <div className="profile-avatar">
               {avatarPreview ? (
-                <img src={avatarPreview} alt="Аватар" />
+                <img src={avatarPreview} alt={t('profile.avatar')} />
               ) : (
                 <span>{(currentUser.nickname || currentUser.login || "U").charAt(0).toUpperCase()}</span>
               )}
@@ -1271,11 +1543,15 @@ function ProfilePage({
             </div>
             <div className="profile-row">
               <span>{t('profile.email')}:</span>
-              <b>{currentUser.email || "не указана"}</b>
+              <b>{currentUser.email || t('profile.notSpecified')}</b>
             </div>
             <div className="profile-row">
               <span>{t('profile.registered')}:</span>
               <b>{formatDate(currentUser.registeredAt)}</b>
+            </div>
+            <div className="profile-row">
+              <span>{t('profile.coins')}:</span>
+              <b>🪙 {currentUser.coins || 0}</b>
             </div>
             <div className="profile-row">
               <span>{t('profile.favoritesCount')}:</span>
@@ -1297,6 +1573,7 @@ function ProfilePage({
   );
 }
 
+// ===== CASINO PAGE =====
 function CasinoPage({ currentUser }) {
   const { t } = useTranslation();
   const symbols = ["🍒", "🍋", "🍊", "🍇", "⭐", "💎"];
@@ -1356,7 +1633,7 @@ function CasinoPage({ currentUser }) {
   function spin() {
     if (isSpinning) return;
     if (attemptsLeft <= 0) {
-      alert("Попытки на сегодня закончились. Возвращайся завтра!");
+      alert(t('casino.noAttempts'));
       return;
     }
 
@@ -1392,9 +1669,9 @@ function CasinoPage({ currentUser }) {
     if (!currentPrize) return;
     try {
       await navigator.clipboard.writeText(currentPrize.code);
-      setCopyMessage("✓ Код скопирован!");
+      setCopyMessage(t('casino.copied'));
     } catch {
-      setCopyMessage("Код: " + currentPrize.code);
+      setCopyMessage(`${t('casino.code')}: ${currentPrize.code}`);
     }
   }
 
@@ -1440,16 +1717,29 @@ function CasinoPage({ currentUser }) {
   );
 }
 
+// ===== ADMIN PAGE =====
 function AdminPage({ allProducts, setAllProducts }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("Фигурки");
   const [universe, setUniverse] = useState("Marvel");
-  const [description, setDescription] = useState("");  // ← ЕСТЬ
+  const [description, setDescription] = useState("");
   const [isNew, setIsNew] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  async function refreshProducts() {
+    try {
+      const response = await fetch("http://localhost:3001/api/products");
+      const data = await response.json();
+      if (data.success) {
+        setAllProducts(data.products);
+      }
+    } catch (error) {
+      console.error("Ошибка загрузки товаров:", error);
+    }
+  }
 
   async function addProduct(event) {
     event.preventDefault();
@@ -1464,7 +1754,7 @@ function AdminPage({ allProducts, setAllProducts }) {
           price: Number(price),
           category,
           universe,
-          description,  // ← ОТПРАВЛЯЕТСЯ НА СЕРВЕР
+          description,
           image: "",
           images: [],
           isNew,
@@ -1477,34 +1767,83 @@ function AdminPage({ allProducts, setAllProducts }) {
         await refreshProducts();
         setTitle("");
         setPrice("");
-        setDescription("");  // ← ОЧИЩАЕТСЯ
+        setDescription("");
         setIsNew(false);
-        setMessage(`✅ Товар "${data.product.title}" добавлен!`);
+        setMessage(t('admin.productAdded', { title: data.product.title, isNew: data.product.isNew ? t('admin.yes') : t('admin.no') }));
+        setTimeout(() => setMessage(""), 3000);
       } else {
         setMessage("❌ " + data.message);
+        setTimeout(() => setMessage(""), 3000);
       }
     } catch (error) {
-      setMessage("❌ Ошибка соединения с сервером");
+      setMessage("❌ " + t('admin.connectionError'));
+      setTimeout(() => setMessage(""), 3000);
     } finally {
       setLoading(false);
     }
   }
 
+  async function toggleNewStatus(productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/products/${productId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...product,
+          isNew: !product.isNew
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        await refreshProducts();
+        setMessage(t('admin.newStatusUpdated', { 
+          status: data.product.isNew ? t('admin.newStatusAdded') : t('admin.newStatusRemoved') 
+        }));
+        setTimeout(() => setMessage(""), 3000);
+      }
+    } catch (error) {
+      setMessage("❌ " + t('admin.connectionError'));
+      setTimeout(() => setMessage(""), 3000);
+    }
+  }
+
+  async function deleteProduct(productId) {
+    if (!confirm(t('admin.confirmDelete'))) return;
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/products/${productId}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (data.success) {
+        await refreshProducts();
+        setMessage(t('admin.productDeleted'));
+        setTimeout(() => setMessage(""), 3000);
+      }
+    } catch (error) {
+      setMessage("❌ " + t('admin.connectionError'));
+      setTimeout(() => setMessage(""), 3000);
+    }
+  }
+
   return (
     <main className="admin-page">
-      <h1>Админка товаров</h1>
+      <h1>{t('admin.title')}</h1>
 
       <form className="admin-form" onSubmit={addProduct}>
         <input
           type="text"
-          placeholder="Название товара"
+          placeholder={t('admin.name')}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           required
         />
         <input
           type="number"
-          placeholder="Цена"
+          placeholder={t('admin.price')}
           value={price}
           onChange={(event) => setPrice(event.target.value)}
           required
@@ -1524,9 +1863,8 @@ function AdminPage({ allProducts, setAllProducts }) {
           <option value="Games">Games</option>
         </select>
         
-        {/* ПОЛЕ ДЛЯ ОПИСАНИЯ */}
         <textarea
-          placeholder="Описание товара"
+          placeholder={t('admin.description')}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           rows="4"
@@ -1551,14 +1889,13 @@ function AdminPage({ allProducts, setAllProducts }) {
             onChange={(event) => setIsNew(event.target.checked)}
             style={{ width: "24px", height: "24px", cursor: "pointer" }}
           />
-          <span style={{ fontFamily: "Press Start 2P", fontSize: "12px" }}>Новинка</span>
+          <span style={{ fontFamily: "Press Start 2P", fontSize: "12px" }}>{t('admin.isNew')}</span>
         </label>
 
         <button type="submit" disabled={loading}>
-          {loading ? "Добавление..." : "Добавить товар"}
+          {loading ? t('admin.adding') : t('admin.addBtn')}
         </button>
       </form>
-
 
       {message && (
         <p className="admin-message" style={{
@@ -1631,6 +1968,7 @@ function AdminPage({ allProducts, setAllProducts }) {
   );
 }
 
+// ===== SUPPORT WIDGET =====
 function SupportWidget({ currentUser }) {
   const [isOpen, setIsOpen] = useState(false);
   const [chat, setChat] = useState(null);
@@ -1829,6 +2167,7 @@ function SupportWidget({ currentUser }) {
   );
 }
 
+// ===== SUPPORT ADMIN PAGE =====
 function SupportAdminPage({ currentUser }) {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -2069,6 +2408,7 @@ function SupportAdminPage({ currentUser }) {
   );
 }
 
+// ===== APP =====
 function App() {
   const [page, setPage] = useState("home");
   const [selectedUniverseFromPage, setSelectedUniverseFromPage] = useState("");
@@ -2098,24 +2438,15 @@ function App() {
   }, []);
 
   function toggleFavorite(productId) {
-  if (favorites.includes(productId)) {
-    setFavorites(favorites.filter((id) => id !== productId));
-    // Обновляем localStorage
-    const updated = favorites.filter((id) => id !== productId);
-    localStorage.setItem('favorites', JSON.stringify(updated));
-  } else {
-    setFavorites([...favorites, productId]);
-    localStorage.setItem('favorites', JSON.stringify([...favorites, productId]));
-  }
-  const savedFavorites = localStorage.getItem('favorites');
-  if (savedFavorites) {
-    try {
-      setFavorites(JSON.parse(savedFavorites));
-    } catch (e) {
-      console.error('Ошибка загрузки избранного из localStorage');
+    if (favorites.includes(productId)) {
+      setFavorites(favorites.filter((id) => id !== productId));
+      const updated = favorites.filter((id) => id !== productId);
+      localStorage.setItem('favorites', JSON.stringify(updated));
+    } else {
+      setFavorites([...favorites, productId]);
+      localStorage.setItem('favorites', JSON.stringify([...favorites, productId]));
     }
   }
-}
 
   function addToCart(productId) {
     setCart((currentCart) => {
@@ -2146,93 +2477,101 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <Header setPage={setPage} currentUser={currentUser} isAdmin={isAdmin} />
+    <VisionProvider>
+      <div className="app">
+        <Header setPage={setPage} currentUser={currentUser} isAdmin={isAdmin} />
 
-      {page === "home" && (
-        <HomePage
-          setPage={setPage}
-          setSelectedCategoryFromHome={setSelectedCategoryFromHome}
-          addToCart={addToCart}
-          allProducts={allProducts}
-          currentUser={currentUser}
-          favorites={favorites}
-          toggleFavorite={toggleFavorite}
-        />
-      )}
+        {page === "home" && (
+          <HomePage
+            setPage={setPage}
+            setSelectedCategoryFromHome={setSelectedCategoryFromHome}
+            addToCart={addToCart}
+            allProducts={allProducts}
+            currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
+            favorites={favorites}
+            toggleFavorite={toggleFavorite}
+          />
+        )}
 
-      {page === "casino" && <CasinoPage currentUser={currentUser} />}
+        {page === "coins" && (
+          <CoinsShop currentUser={currentUser} setCurrentUser={setCurrentUser} />
+        )}
 
-      {page === "products" && (
-        <ProductsPage
-          currentUser={currentUser}
-          favorites={favorites}
-          toggleFavorite={toggleFavorite}
-          setPage={setPage}
-          addToCart={addToCart}
-          selectedUniverseFromPage={selectedUniverseFromPage}
-          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
-          selectedCategoryFromHome={selectedCategoryFromHome}
-          setSelectedCategoryFromHome={setSelectedCategoryFromHome}
-          allProducts={allProducts}
-        />
-      )}
+        {page === "casino" && <CasinoPage currentUser={currentUser} />}
 
-      {page === "universes" && (
-        <UniversesPage
-          setPage={setPage}
-          setSelectedUniverseFromPage={setSelectedUniverseFromPage}
-        />
-      )}
+        {page === "products" && (
+          <ProductsPage
+            currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
+            favorites={favorites}
+            toggleFavorite={toggleFavorite}
+            setPage={setPage}
+            addToCart={addToCart}
+            selectedUniverseFromPage={selectedUniverseFromPage}
+            setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+            selectedCategoryFromHome={selectedCategoryFromHome}
+            setSelectedCategoryFromHome={setSelectedCategoryFromHome}
+            allProducts={allProducts}
+          />
+        )}
 
-      {page === "about" && <AboutPage />}
+        {page === "universes" && (
+          <UniversesPage
+            setPage={setPage}
+            setSelectedUniverseFromPage={setSelectedUniverseFromPage}
+          />
+        )}
 
-      {page === "admin" && isAdmin && (
-       <AdminPage allProducts={allProducts} setAllProducts={setAllProducts} />
-      )}
+        {page === "about" && <AboutPage />}
 
-      {page === "support-admin" && isAdmin && (
-        <SupportAdminPage currentUser={currentUser} />
-      )}
+        {page === "admin" && isAdmin && (
+          <AdminPage allProducts={allProducts} setAllProducts={setAllProducts} />
+        )}
 
-      {page === "favorites" && (
-        <FavoritesPage
-          currentUser={currentUser}
-          favorites={favorites}
-          toggleFavorite={toggleFavorite}
-          setPage={setPage}
-          allProducts={allProducts}
-        />
-      )}
+        {page === "support-admin" && isAdmin && (
+          <SupportAdminPage currentUser={currentUser} />
+        )}
 
-      {page === "cart" && (
-        <CartPage
-          currentUser={currentUser}
-          cart={cart}
-          changeCartQuantity={changeCartQuantity}
-          removeFromCart={removeFromCart}
-          setPage={setPage}
-          allProducts={allProducts}
-        />
-      )}
+        {page === "favorites" && (
+          <FavoritesPage
+            currentUser={currentUser}
+            favorites={favorites}
+            toggleFavorite={toggleFavorite}
+            setPage={setPage}
+            allProducts={allProducts}
+          />
+        )}
 
-      {page === "login" && (
-        <LoginPage currentUser={currentUser} setCurrentUser={setCurrentUser} />
-      )}
+        {page === "cart" && (
+          <CartPage
+            currentUser={currentUser}
+            cart={cart}
+            changeCartQuantity={changeCartQuantity}
+            removeFromCart={removeFromCart}
+            setPage={setPage}
+            allProducts={allProducts}
+          />
+        )}
 
-      {page === "profile" && (
-        <ProfilePage
-          currentUser={currentUser}
-          setCurrentUser={setCurrentUser}
-          favorites={favorites}
-          cart={cart}
-          setPage={setPage}
-        />
-      )}
+        {page === "login" && (
+          <LoginPage currentUser={currentUser} setCurrentUser={setCurrentUser} />
+        )}
 
-      <Footer setPage={setPage} />
-      {currentUser && !isAdmin && <SupportWidget currentUser={currentUser} />}
-    </div>
+        {page === "profile" && (
+          <ProfilePage
+            currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
+            favorites={favorites}
+            cart={cart}
+            setPage={setPage}
+          />
+        )}
+
+        <Footer setPage={setPage} />
+        {currentUser && !isAdmin && <SupportWidget currentUser={currentUser} />}
+      </div>
+    </VisionProvider>
   );
 }
 
